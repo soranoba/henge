@@ -1,8 +1,8 @@
 package henge
 
 import (
-	"reflect"
 	"testing"
+	"time"
 )
 
 func TestCopy_Primitive(t *testing.T) {
@@ -21,6 +21,16 @@ func TestCopy_Primitive(t *testing.T) {
 	var f64 float64
 	Copy(1, &f64)
 	assertEqual(t, f64, float64(1))
+}
+
+func TestCopy_Nil(t *testing.T) {
+	var src *string
+	var dst string
+
+	Copy(nil, &dst)
+	assertEqual(t, dst, "")
+	Copy(src, &dst)
+	assertEqual(t, dst, "")
 }
 
 func TestCopy_Array(t *testing.T) {
@@ -84,9 +94,22 @@ func TestCopy_Struct(t *testing.T) {
 }
 
 func TestCopy_InternalField(t *testing.T) {
-	src := reflect.ValueOf("hoge")
-	var dst reflect.Value
+	src := time.Now()
+	var dst struct {
+		wall uint64
+	}
 
 	Copy(src, &dst)
-	assertEqual(t, dst, reflect.Value{})
+	assertEqual(t, dst, struct{ wall uint64 }{})
+}
+
+func TestCopy_SameType(t *testing.T) {
+	src := time.Now()
+	var t1, t2 time.Time
+
+	Copy(src, &t1)
+	assertEqual(t, t1, src)
+
+	Copy(&src, &t2)
+	assertEqual(t, t2, src)
 }

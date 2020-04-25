@@ -18,6 +18,17 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 		panic("henge.Copy only allows values that can be writable out")
 	}
 
+	in = reflect.Indirect(in)
+	if !in.IsValid() {
+		return
+	}
+
+	// Types that are simply converted (it also copies private fields)
+	if in.Type().ConvertibleTo(out.Type()) {
+		out.Set(in.Convert(out.Type()))
+		return
+	}
+
 	switch out.Kind() {
 	case reflect.Int:
 		out.Set(reflect.ValueOf((int)(Int(in.Interface()))))
