@@ -46,7 +46,11 @@ func TestInt(t *testing.T) {
 	assertEqual(t, Int("abcd"), int64(0))
 
 	// nil
+	var null interface{}
+	var ptr *int64
 	assertEqual(t, Int(nil), int64(0))
+	assertEqual(t, Int(null), int64(0))
+	assertEqual(t, Int(ptr), int64(0))
 }
 
 func TestUint(t *testing.T) {
@@ -77,7 +81,11 @@ func TestUint(t *testing.T) {
 	assertEqual(t, Uint("abcd"), uint64(0))
 
 	// nil
+	var null interface{}
+	var ptr *uint64
 	assertEqual(t, Uint(nil), uint64(0))
+	assertEqual(t, Uint(null), uint64(0))
+	assertEqual(t, Uint(ptr), uint64(0))
 }
 
 func TestFloat(t *testing.T) {
@@ -108,7 +116,11 @@ func TestFloat(t *testing.T) {
 	assertEqual(t, Float("abcd"), float64(0))
 
 	// nil
+	var null interface{}
+	var ptr *float64
 	assertEqual(t, Float(nil), float64(0))
+	assertEqual(t, Float(null), float64(0))
+	assertEqual(t, Float(ptr), float64(0))
 }
 
 func TestString(t *testing.T) {
@@ -146,7 +158,11 @@ func TestString(t *testing.T) {
 	assertEqual(t, String(&by), "hoge")
 
 	// nil
+	var null interface{}
+	var ptr *string
 	assertEqual(t, String(nil), "")
+	assertEqual(t, String(null), "")
+	assertEqual(t, String(ptr), "")
 }
 
 func TestStringPtr(t *testing.T) {
@@ -175,6 +191,14 @@ func TestMap(t *testing.T) {
 		},
 	}
 	assertEqual(t, m, expected)
+
+	// nil
+	var null interface{}
+	var ptr *map[string]interface{}
+	assertEqual(t, Map(nil), map[string]interface{}{})
+	assertEqual(t, Map(null), map[string]interface{}{})
+	assertEqual(t, Map(ptr), map[string]interface{}{})
+	assertEqual(t, Map(struct{ A *string }{}), map[string]interface{}{})
 }
 
 func assertEqual(t *testing.T, got, expected interface{}) bool {

@@ -7,11 +7,11 @@ import (
 )
 
 func Int(in interface{}) (out int64) {
-	if in == nil {
+	inV := reflect.Indirect(reflect.ValueOf(in))
+	if !inV.IsValid() {
 		return
 	}
 
-	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
 	if inT.ConvertibleTo(outT) {
@@ -27,11 +27,11 @@ func Int(in interface{}) (out int64) {
 }
 
 func Uint(in interface{}) (out uint64) {
-	if in == nil {
+	inV := reflect.Indirect(reflect.ValueOf(in))
+	if !inV.IsValid() {
 		return
 	}
 
-	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
 	if inT.ConvertibleTo(outT) {
@@ -47,11 +47,11 @@ func Uint(in interface{}) (out uint64) {
 }
 
 func Float(in interface{}) (out float64) {
-	if in == nil {
+	inV := reflect.Indirect(reflect.ValueOf(in))
+	if !inV.IsValid() {
 		return
 	}
 
-	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
 	if inT.ConvertibleTo(outT) {
@@ -67,11 +67,11 @@ func Float(in interface{}) (out float64) {
 }
 
 func String(in interface{}) (out string) {
-	if in == nil {
+	inV := reflect.Indirect(reflect.ValueOf(in))
+	if !inV.IsValid() {
 		return
 	}
 
-	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
 
@@ -115,8 +115,11 @@ func StringPtr(in interface{}) *string {
 
 func Map(in interface{}) (out map[string]interface{}) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
-	inT := inV.Type()
+	if !inV.IsValid() {
+		return make(map[string]interface{}, 0)
+	}
 
+	inT := inV.Type()
 	if inT.Kind() != reflect.Struct {
 		panic("henge.Map can only support conversion from structs")
 	}
@@ -128,7 +131,7 @@ func Map(in interface{}) (out map[string]interface{}) {
 
 		if v.Kind() == reflect.Struct {
 			out[field.Name] = Map(v.Interface())
-		} else {
+		} else if v.IsValid() {
 			out[field.Name] = v.Interface()
 		}
 	}
