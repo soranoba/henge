@@ -6,4 +6,8 @@ test:
 	go test ./...
 
 format:
-	go fmt ./...
+	gofmt -w ./
+
+lint:
+	gofmt -d ./
+	test -z $(shell gofmt -l ./)
