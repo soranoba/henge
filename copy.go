@@ -29,6 +29,16 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 		out.Set(reflect.ValueOf((int32)(Int(in.Interface()))))
 	case reflect.Int64:
 		out.Set(reflect.ValueOf((int64)(Int(in.Interface()))))
+	case reflect.Uint:
+		out.Set(reflect.ValueOf((uint)(UInt(in.Interface()))))
+	case reflect.Uint8:
+		out.Set(reflect.ValueOf((uint8)(UInt(in.Interface()))))
+	case reflect.Uint16:
+		out.Set(reflect.ValueOf((uint16)(UInt(in.Interface()))))
+	case reflect.Uint32:
+		out.Set(reflect.ValueOf((uint32)(UInt(in.Interface()))))
+	case reflect.Uint64:
+		out.Set(reflect.ValueOf((uint64)(UInt(in.Interface()))))
 	case reflect.Float32:
 		out.Set(reflect.ValueOf((float32)(Float(in.Interface()))))
 	case reflect.Float64:
@@ -76,7 +86,7 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 			if v.IsValid() {
 				if dst := reflect.Indirect(v); dst.CanSet() {
 					deepCopy(pair.Value, dst)
-				} else {
+				} else if v.Type().Kind() == reflect.Ptr && v.CanSet() {
 					dst := reflect.New(v.Type().Elem())
 					deepCopy(pair.Value, dst)
 					v.Set(dst)

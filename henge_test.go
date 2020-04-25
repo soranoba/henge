@@ -20,9 +20,14 @@ type TestStruct1 struct {
 
 func TestInt(t *testing.T) {
 	// int64
-	i := 1
+	i := int64(1)
 	assertEqual(t, Int(i), int64(1))
 	assertEqual(t, Int(&i), int64(1))
+
+	// uint64
+	ui := uint64(1)
+	assertEqual(t, Int(ui), int64(1))
+	assertEqual(t, Int(&ui), int64(1))
 
 	// float64
 	f := 1.2
@@ -41,11 +46,44 @@ func TestInt(t *testing.T) {
 	assertEqual(t, Int("abcd"), int64(0))
 }
 
+func TestUint(t *testing.T) {
+	// int64
+	i := int64(1)
+	assertEqual(t, UInt(i), uint64(1))
+	assertEqual(t, UInt(&i), uint64(1))
+
+	// uint64
+	ui := uint64(1)
+	assertEqual(t, UInt(ui), uint64(1))
+	assertEqual(t, UInt(&ui), uint64(1))
+
+	// float64
+	f := 1.2
+	assertEqual(t, UInt(f), uint64(1))
+	assertEqual(t, UInt(&f), uint64(1))
+
+	// bool
+	b := true
+	assertEqual(t, UInt(b), uint64(1))
+	assertEqual(t, UInt(&b), uint64(1))
+
+	// string
+	s := "1"
+	assertEqual(t, UInt(s), uint64(1))
+	assertEqual(t, UInt(&s), uint64(1))
+	assertEqual(t, UInt("abcd"), uint64(0))
+}
+
 func TestFloat(t *testing.T) {
 	// int64
 	i := 1
 	assertEqual(t, Float(i), float64(1))
 	assertEqual(t, Float(&i), float64(1))
+
+	// uint64
+	ui := uint64(1)
+	assertEqual(t, Float(ui), float64(1))
+	assertEqual(t, Float(&ui), float64(1))
 
 	// float64
 	f := 1.2
@@ -69,6 +107,11 @@ func TestString(t *testing.T) {
 	i := 1
 	assertEqual(t, String(i), "1")
 	assertEqual(t, String(&i), "1")
+
+	// uint64
+	ui := uint64(1)
+	assertEqual(t, String(ui), "1")
+	assertEqual(t, String(&ui), "1")
 
 	// float64
 	f := 1.2

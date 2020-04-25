@@ -1,6 +1,7 @@
 package henge
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -57,10 +58,12 @@ func TestCopy_Struct(t *testing.T) {
 
 	s1 := TestStruct1{
 		A: "hoge",
+		B: 100,
 		D: struct{ D2 string }{"fuga"},
 	}
 	var s2 struct {
 		A string
+		B *int
 		D struct {
 			D2 *string
 			D3 string
@@ -73,8 +76,17 @@ func TestCopy_Struct(t *testing.T) {
 
 	Copy(s1, &s2)
 	assertEqual(t, s2.A, "hoge")
+	assertEqual(t, *(s2.B), 100)
 	assertEqual(t, *(s2.D.D2), "fuga")
 	assertEqual(t, s2.D.D3, "")
 	assertEqual(t, *(s2.E), struct{}{})
 	assertNil(t, s2.F)
+}
+
+func TestCopy_InternalField(t *testing.T) {
+	src := reflect.ValueOf("hoge")
+	var dst reflect.Value
+
+	Copy(src, &dst)
+	assertEqual(t, dst, reflect.Value{})
 }

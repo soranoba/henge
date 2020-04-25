@@ -22,6 +22,22 @@ func Int(in interface{}) (out int64) {
 	return
 }
 
+func UInt(in interface{}) (out uint64) {
+	inV := reflect.Indirect(reflect.ValueOf(in))
+	inT := inV.Type()
+	outT := reflect.TypeOf(out)
+	if inT.ConvertibleTo(outT) {
+		out = inV.Convert(outT).Interface().(uint64)
+	} else if inT.Kind() == reflect.String {
+		out, _ = strconv.ParseUint(inV.Interface().(string), 10, 64)
+	} else if inT.Kind() == reflect.Bool {
+		if inV.Interface().(bool) == true {
+			out = 1
+		}
+	}
+	return
+}
+
 func Float(in interface{}) (out float64) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
@@ -51,6 +67,14 @@ func String(in interface{}) (out string) {
 		var i int64
 		i = inV.Convert(reflect.TypeOf(i)).Interface().(int64)
 		out = strconv.FormatInt(i, 10)
+	} else if inT.Kind() == reflect.Uint ||
+		inT.Kind() == reflect.Uint8 ||
+		inT.Kind() == reflect.Uint16 ||
+		inT.Kind() == reflect.Uint32 ||
+		inT.Kind() == reflect.Uint64 {
+		var ui uint64
+		ui = inV.Convert(reflect.TypeOf(ui)).Interface().(uint64)
+		out = strconv.FormatUint(ui, 10)
 	} else if inT.Kind() == reflect.Float32 ||
 		inT.Kind() == reflect.Float64 {
 		var f float64
