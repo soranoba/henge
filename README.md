@@ -1,4 +1,5 @@
 # Henge
+[![CircleCI](https://circleci.com/gh/soranoba/henge.svg?style=svg&circle-token=3c8c20a0a57a6333fb949dd6b901c610656e9da6)](https://circleci.com/gh/soranoba/henge)
 
 Henge is a struct transrate library for Golang.  
 变化 (Henge) means "appear in a different appearance" in Japanese.  
