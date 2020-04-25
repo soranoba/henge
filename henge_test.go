@@ -44,34 +44,40 @@ func TestInt(t *testing.T) {
 	assertEqual(t, Int(s), int64(1))
 	assertEqual(t, Int(&s), int64(1))
 	assertEqual(t, Int("abcd"), int64(0))
+
+	// nil
+	assertEqual(t, Int(nil), int64(0))
 }
 
 func TestUint(t *testing.T) {
 	// int64
 	i := int64(1)
-	assertEqual(t, UInt(i), uint64(1))
-	assertEqual(t, UInt(&i), uint64(1))
+	assertEqual(t, Uint(i), uint64(1))
+	assertEqual(t, Uint(&i), uint64(1))
 
 	// uint64
 	ui := uint64(1)
-	assertEqual(t, UInt(ui), uint64(1))
-	assertEqual(t, UInt(&ui), uint64(1))
+	assertEqual(t, Uint(ui), uint64(1))
+	assertEqual(t, Uint(&ui), uint64(1))
 
 	// float64
 	f := 1.2
-	assertEqual(t, UInt(f), uint64(1))
-	assertEqual(t, UInt(&f), uint64(1))
+	assertEqual(t, Uint(f), uint64(1))
+	assertEqual(t, Uint(&f), uint64(1))
 
 	// bool
 	b := true
-	assertEqual(t, UInt(b), uint64(1))
-	assertEqual(t, UInt(&b), uint64(1))
+	assertEqual(t, Uint(b), uint64(1))
+	assertEqual(t, Uint(&b), uint64(1))
 
 	// string
 	s := "1"
-	assertEqual(t, UInt(s), uint64(1))
-	assertEqual(t, UInt(&s), uint64(1))
-	assertEqual(t, UInt("abcd"), uint64(0))
+	assertEqual(t, Uint(s), uint64(1))
+	assertEqual(t, Uint(&s), uint64(1))
+	assertEqual(t, Uint("abcd"), uint64(0))
+
+	// nil
+	assertEqual(t, Uint(nil), uint64(0))
 }
 
 func TestFloat(t *testing.T) {
@@ -100,6 +106,9 @@ func TestFloat(t *testing.T) {
 	assertEqual(t, Float(s), float64(1.2))
 	assertEqual(t, Float(&s), float64(1.2))
 	assertEqual(t, Float("abcd"), float64(0))
+
+	// nil
+	assertEqual(t, Float(nil), float64(0))
 }
 
 func TestString(t *testing.T) {
@@ -135,6 +144,9 @@ func TestString(t *testing.T) {
 	by := []byte("hoge")
 	assertEqual(t, String(by), "hoge")
 	assertEqual(t, String(&by), "hoge")
+
+	// nil
+	assertEqual(t, String(nil), "")
 }
 
 func TestStringPtr(t *testing.T) {

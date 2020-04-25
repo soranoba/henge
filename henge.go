@@ -7,6 +7,10 @@ import (
 )
 
 func Int(in interface{}) (out int64) {
+	if in == nil {
+		return
+	}
+
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
@@ -22,7 +26,11 @@ func Int(in interface{}) (out int64) {
 	return
 }
 
-func UInt(in interface{}) (out uint64) {
+func Uint(in interface{}) (out uint64) {
+	if in == nil {
+		return
+	}
+
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
@@ -39,6 +47,10 @@ func UInt(in interface{}) (out uint64) {
 }
 
 func Float(in interface{}) (out float64) {
+	if in == nil {
+		return
+	}
+
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
@@ -55,6 +67,10 @@ func Float(in interface{}) (out float64) {
 }
 
 func String(in interface{}) (out string) {
+	if in == nil {
+		return
+	}
+
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	inT := inV.Type()
 	outT := reflect.TypeOf(out)
