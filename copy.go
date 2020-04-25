@@ -5,6 +5,18 @@ import (
 	"reflect"
 )
 
+// Convert an interface to another.
+// Example:
+//
+//   src := time.Now()
+//   dst = new(time.Time)
+//   Copy(src, dst)
+//
+// Conversion rules:
+//   - Can convert between non-pointer type and pointer type.
+//   - Can convert primitive type like by PHP.
+//   - If the type is the same, copy it including private fields.
+//   - If the type is another, copy it excluding private fields.
 func Copy(in interface{}, out interface{}) {
 	deepCopy(reflect.ValueOf(in), reflect.ValueOf(out))
 }
@@ -70,11 +82,7 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 			out.Set(reflect.MakeMap(out.Type()))
 		}
 
-		for {
-			pair := ite.More()
-			if pair == nil {
-				break
-			}
+		for _, pair := range getPairs(ite) {
 			kc := reflect.New(kt)
 			vc := reflect.New(vt)
 			deepCopy(pair.Key, kc)
@@ -87,12 +95,7 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 			return
 		}
 
-		for {
-			pair := ite.More()
-			if pair == nil {
-				break
-			}
-
+		for _, pair := range getPairs(ite) {
 			v := out.FieldByName(String(pair.Key.Interface()))
 			fmt.Println(pair, v, v.Kind(), v.IsValid(), v.CanSet())
 			if v.IsValid() {
@@ -115,11 +118,7 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 			return
 		}
 
-		for idx := 0; ; idx++ {
-			pair := ite.More()
-			if pair == nil {
-				break
-			}
+		for idx, pair := range getPairs(ite) {
 			if idx < out.Len() {
 				deepCopy(pair.Value, out.Index(idx))
 			} else {
@@ -129,4 +128,20 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 			}
 		}
 	}
+}
+
+func getPairs(ite Iterator) []*Pair {
+	pairs := make([]*Pair, 0, ite.Count())
+	for i := 0; ; i++ {
+		pair := ite.More()
+		if pair == nil {
+			break
+		}
+
+		// ignore private fields
+		if pair.Key.CanInterface() && pair.Value.CanInterface() {
+			pairs = append(pairs, pair)
+		}
+	}
+	return pairs
 }

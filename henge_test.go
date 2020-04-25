@@ -165,7 +165,17 @@ func TestString(t *testing.T) {
 	assertEqual(t, String(ptr), "")
 }
 
+func TestIntPtr(t *testing.T) {
+	assertNil(t, IntPtr(nil))
+	assertNil(t, IntPtr((*string)(nil)))
+	assertEqual(t, *IntPtr(123), int64(123))
+	assertEqual(t, *IntPtr("123"), int64(123))
+}
+
 func TestStringPtr(t *testing.T) {
+	assertNil(t, StringPtr(nil))
+	assertNil(t, StringPtr((*int)(nil)))
+	assertEqual(t, *StringPtr(123), "123")
 	assertEqual(t, *StringPtr("hoge"), "hoge")
 }
 

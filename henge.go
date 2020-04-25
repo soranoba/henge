@@ -6,6 +6,8 @@ import (
 	"strconv"
 )
 
+// Converts and returns interface to int.
+// If it cannot convert, it returns zero.
 func Int(in interface{}) (out int64) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	if !inV.IsValid() {
@@ -26,6 +28,8 @@ func Int(in interface{}) (out int64) {
 	return
 }
 
+// Converts and returns interface to uint.
+// If it cannot convert, it returns zero.
 func Uint(in interface{}) (out uint64) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	if !inV.IsValid() {
@@ -46,6 +50,8 @@ func Uint(in interface{}) (out uint64) {
 	return
 }
 
+// Converts and returns interface to float.
+// If it cannot convert, it returns zero.
 func Float(in interface{}) (out float64) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	if !inV.IsValid() {
@@ -66,6 +72,8 @@ func Float(in interface{}) (out float64) {
 	return
 }
 
+// Converts and returns interface to string.
+// If it cannot convert, it returns empty string.
 func String(in interface{}) (out string) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	if !inV.IsValid() {
@@ -108,11 +116,59 @@ func String(in interface{}) (out string) {
 	return
 }
 
+// Converts and returns interface to a pointer of int.
+//
+// It only returns nil, if nil inputted.
+// Otherwise, it returns a pointer of result conversion to int.
+func IntPtr(in interface{}) *int64 {
+	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
+		return nil
+	}
+
+	i := Int(in)
+	return &i
+}
+
+// Converts and returns interface to a pointer of uint.
+//
+// It only returns nil, if nil inputted.
+// Otherwise, it returns a pointer of result conversion to uint.
+func UintPtr(in interface{}) *uint64 {
+	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
+		return nil
+	}
+
+	ui := Uint(in)
+	return &ui
+}
+
+// Converts and returns interface to a pointer of float.
+//
+// It only returns nil, if nil inputted.
+// Otherwise, it returns a pointer of result conversion to float.
+func FloatPtr(in interface{}) *float64 {
+	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
+		return nil
+	}
+
+	f := Float(in)
+	return &f
+}
+
+// Converts and returns interface to a pointer of string.
+//
+// It only returns nil, if nil inputted.
+// Otherwise, it returns a pointer of result conversion to string.
 func StringPtr(in interface{}) *string {
+	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
+		return nil
+	}
+
 	s := String(in)
 	return &s
 }
 
+// Converts and returns interface to map.
 func Map(in interface{}) (out map[string]interface{}) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	if !inV.IsValid() {
