@@ -1,7 +1,6 @@
 package henge
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -97,7 +96,6 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 
 		for _, pair := range getPairs(ite) {
 			v := out.FieldByName(String(pair.Key.Interface()))
-			fmt.Println(pair, v, v.Kind(), v.IsValid(), v.CanSet())
 			if v.IsValid() {
 				if pair.Value.Kind() == reflect.Ptr && pair.Value.IsNil() {
 					continue
