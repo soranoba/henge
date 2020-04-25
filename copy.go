@@ -92,10 +92,13 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 			if pair == nil {
 				break
 			}
+
 			v := out.FieldByName(String(pair.Key.Interface()))
 			fmt.Println(pair, v, v.Kind(), v.IsValid(), v.CanSet())
 			if v.IsValid() {
-				if dst := reflect.Indirect(v); dst.CanSet() {
+				if pair.Value.Kind() == reflect.Ptr && pair.Value.IsNil() {
+					continue
+				} else if dst := reflect.Indirect(v); dst.CanSet() {
 					deepCopy(pair.Value, dst)
 				} else if v.Type().Kind() == reflect.Ptr && v.CanSet() {
 					dst := reflect.New(v.Type().Elem())

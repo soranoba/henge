@@ -89,7 +89,7 @@ func TestCopy_Struct(t *testing.T) {
 	assertEqual(t, *(s2.B), 100)
 	assertEqual(t, *(s2.D.D2), "fuga")
 	assertEqual(t, s2.D.D3, "")
-	assertEqual(t, *(s2.E), struct{}{})
+	assertNil(t, s2.E)
 	assertNil(t, s2.F)
 }
 
@@ -112,4 +112,21 @@ func TestCopy_SameType(t *testing.T) {
 
 	Copy(&src, &t2)
 	assertEqual(t, t2, src)
+}
+
+func TestCopy_NilPointerInStruct(t *testing.T) {
+	var t1 struct {
+		A *string
+		T *time.Time
+	}
+	var t2 struct {
+		A *string
+		B *int
+		T *time.Time
+	}
+
+	Copy(t1, &t2)
+	assertNil(t, t2.A)
+	assertNil(t, t2.B)
+	assertNil(t, t2.T)
 }
