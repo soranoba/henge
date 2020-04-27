@@ -6,6 +6,9 @@ import (
 	"strconv"
 )
 
+// ref: MapWithDepth()
+const UnlimitedDepth uint = ^uint(0)
+
 // Converts and returns interface to int.
 // If it cannot convert, it returns zero.
 func Int(in interface{}) (out int64) {
@@ -168,8 +171,16 @@ func StringPtr(in interface{}) *string {
 	return &s
 }
 
-// Converts and returns interface to map.
+// Convert a struct to a map.
+// It will not be expanded nested structs.
 func Map(in interface{}) (out map[string]interface{}) {
+	return MapWithDepth(in, 0)
+}
+
+// MapWithDepth() is the same as Map().
+// It can specify how much to expand the nested struct.
+// When depth is zero, it returns empty map.
+func MapWithDepth(in interface{}, depth uint) (out map[string]interface{}) {
 	inV := reflect.Indirect(reflect.ValueOf(in))
 	if !inV.IsValid() {
 		return make(map[string]interface{}, 0)
@@ -185,9 +196,9 @@ func Map(in interface{}) (out map[string]interface{}) {
 		field := inT.Field(i)
 		v := reflect.Indirect(inV.FieldByName(field.Name))
 
-		if v.Kind() == reflect.Struct {
-			out[field.Name] = Map(v.Interface())
-		} else if v.IsValid() {
+		if v.Kind() == reflect.Struct && depth > 0 {
+			out[field.Name] = MapWithDepth(v.Interface(), depth-1)
+		} else if v.IsValid() && v.CanInterface() {
 			out[field.Name] = v.Interface()
 		}
 	}

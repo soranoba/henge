@@ -188,7 +188,7 @@ func TestMap(t *testing.T) {
 		E: &struct{ E2 *string }{StringPtr("e2")},
 	}
 
-	m := Map(s)
+	m := MapWithDepth(s, UnlimitedDepth)
 	expected := map[string]interface{}{
 		"A": "a",
 		"B": 1,
@@ -209,6 +209,59 @@ func TestMap(t *testing.T) {
 	assertEqual(t, Map(null), map[string]interface{}{})
 	assertEqual(t, Map(ptr), map[string]interface{}{})
 	assertEqual(t, Map(struct{ A *string }{}), map[string]interface{}{})
+}
+
+func TestMapWithDepth(t *testing.T) {
+	in := struct {
+		A string
+		B struct {
+			C string
+			D struct {
+				E string
+			}
+		}
+	}{
+		A: "aaa",
+		B: struct {
+			C string
+			D struct{ E string }
+		}{
+			C: "ccc",
+			D: struct{ E string }{
+				E: "eee",
+			},
+		},
+	}
+	assertEqual(t, MapWithDepth(in, 0), map[string]interface{}{
+		"A": "aaa",
+		"B": struct {
+			C string
+			D struct{ E string }
+		}{
+			C: "ccc",
+			D: struct{ E string }{
+				E: "eee",
+			},
+		},
+	})
+	assertEqual(t, MapWithDepth(in, 1), map[string]interface{}{
+		"A": "aaa",
+		"B": map[string]interface{}{
+			"C": "ccc",
+			"D": struct{ E string }{
+				E: "eee",
+			},
+		},
+	})
+	assertEqual(t, MapWithDepth(in, 2), map[string]interface{}{
+		"A": "aaa",
+		"B": map[string]interface{}{
+			"C": "ccc",
+			"D": map[string]interface{}{
+				"E": "eee",
+			},
+		},
+	})
 }
 
 func assertEqual(t *testing.T, got, expected interface{}) bool {
