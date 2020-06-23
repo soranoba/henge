@@ -70,15 +70,17 @@ func TestCopy_Struct(t *testing.T) {
 		A: "hoge",
 		B: 100,
 		D: struct{ D2 string }{"fuga"},
+		E: &struct{ E2 *string }{StringPtr("piyo")},
 	}
 	var s2 struct {
 		A string
 		B *int
-		D struct {
+		D *struct {
 			D2 *string
 			D3 string
 		}
-		E *struct {
+		E struct {
+			E2 string
 		}
 		F *struct {
 		}
@@ -89,7 +91,7 @@ func TestCopy_Struct(t *testing.T) {
 	assertEqual(t, *(s2.B), 100)
 	assertEqual(t, *(s2.D.D2), "fuga")
 	assertEqual(t, s2.D.D3, "")
-	assertNil(t, s2.E)
+	assertEqual(t, s2.E.E2, "piyo")
 	assertNil(t, s2.F)
 }
 
@@ -129,4 +131,28 @@ func TestCopy_NilPointerInStruct(t *testing.T) {
 	assertNil(t, t2.A)
 	assertNil(t, t2.B)
 	assertNil(t, t2.T)
+}
+
+func TestCopy_EmbededField(t *testing.T) {
+	type T struct {
+		A string
+	}
+
+	t0 := struct {
+		A string
+	}{
+		A: "aaaa",
+	}
+
+	var t1 struct {
+		T
+	}
+	var t2 struct {
+		*T
+	}
+
+	Copy(t0, &t1)
+	Copy(t0, &t2)
+	assertEqual(t, t1.A, t0.A)
+	assertEqual(t, String(t2.A), t0.A)
 }

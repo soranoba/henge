@@ -95,11 +95,28 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 		}
 
 		for _, pair := range getPairs(ite) {
-			v := out.FieldByName(String(pair.Key.Interface()))
+			if pair.Value.Kind() == reflect.Ptr && pair.Value.IsNil() {
+				continue
+			}
+
+			fieldName := String(pair.Key.Interface())
+			structField, ok := out.Type().FieldByName(fieldName)
+			if !ok || len(structField.Index) == 0 {
+				continue
+			}
+
+			// NOTE: Uninitialized embeded field.
+			v := out.Field(structField.Index[0])
+			for v.Kind() == reflect.Ptr && v.Type().Elem().Kind() == reflect.Struct {
+				if v.IsNil() {
+					v.Set(reflect.New(v.Type().Elem()))
+				}
+				v = v.Elem()
+			}
+
+			v = out.FieldByName(fieldName)
 			if v.IsValid() {
-				if pair.Value.Kind() == reflect.Ptr && pair.Value.IsNil() {
-					continue
-				} else if dst := reflect.Indirect(v); dst.CanSet() {
+				if dst := reflect.Indirect(v); dst.CanSet() {
 					deepCopy(pair.Value, dst)
 				} else if v.Type().Kind() == reflect.Ptr && v.CanSet() {
 					dst := reflect.New(v.Type().Elem())
