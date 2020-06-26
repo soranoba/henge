@@ -5,6 +5,8 @@ import (
 	"reflect"
 )
 
+type Options map[string]interface{}
+
 // When henge.Copy is executed, afterHenge is called
 // if this interface is implemented on the output type.
 //
@@ -12,7 +14,7 @@ import (
 // because it copy including the private field when input and output are same type.
 type AfterCallback interface {
 	// src is a non-pointer type.
-	AfterHenge(src interface{})
+	AfterHenge(src interface{}, opt Options)
 }
 
 // Convert an interface to another.
@@ -27,11 +29,15 @@ type AfterCallback interface {
 //   - Can convert primitive type like by PHP.
 //   - If the type is the same, copy it including private fields.
 //   - If the type is another, copy it excluding private fields.
-func Copy(in interface{}, out interface{}) {
-	deepCopy(reflect.ValueOf(in), reflect.ValueOf(out))
+func Copy(in interface{}, out interface{}, opts ...Options) {
+	deepCopy(reflect.ValueOf(in), reflect.ValueOf(out), opts...)
 }
 
-func deepCopy(in reflect.Value, out reflect.Value) {
+func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
+	if len(opts) > 1 {
+		panic("opts disallow two or more thena")
+	}
+
 	if out.Kind() == reflect.Ptr {
 		out = out.Elem()
 	}
@@ -46,7 +52,13 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 	}
 
 	if afterCallback, ok := out.Addr().Interface().(AfterCallback); ok {
-		defer afterCallback.AfterHenge(in.Interface())
+		var opt Options
+		if len(opts) == 0 {
+			opt = make(Options)
+		} else {
+			opt = opts[0]
+		}
+		defer afterCallback.AfterHenge(in.Interface(), opt)
 	}
 
 	// Types that are simply converted (it also copies private fields)
