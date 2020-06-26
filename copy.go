@@ -127,14 +127,18 @@ func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
 			}
 
 			fieldName := String(pair.Key.Interface())
-			structField, ok := out.Type().FieldByName(fieldName)
-			if !ok || len(structField.Index) == 0 {
-				continue
-			}
 
 			// NOTE: Uninitialized embeded field.
-			v := out.Field(structField.Index[0])
-			for v.Kind() == reflect.Ptr && v.Type().Elem().Kind() == reflect.Struct {
+			v := out
+			for true {
+				structField, ok := v.Type().FieldByName(fieldName)
+				if !ok || len(structField.Index) == 0 {
+					break
+				}
+				v = v.Field(structField.Index[0])
+				if !(v.Kind() == reflect.Ptr && v.Type().Elem().Kind() == reflect.Struct) {
+					break
+				}
 				if v.IsNil() {
 					v.Set(reflect.New(v.Type().Elem()))
 				}

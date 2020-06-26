@@ -201,6 +201,9 @@ func TestCopy_EmbededField(t *testing.T) {
 	type T struct {
 		A string
 	}
+	type U struct {
+		*T
+	}
 
 	t0 := struct {
 		A string
@@ -211,14 +214,17 @@ func TestCopy_EmbededField(t *testing.T) {
 	var t1 struct {
 		T
 	}
-	var t2 struct {
-		*T
+	var t2 U
+	var t3 struct {
+		*U
 	}
 
 	Copy(t0, &t1)
 	Copy(t0, &t2)
+	Copy(t0, &t3)
 	assertEqual(t, t1.A, t0.A)
 	assertEqual(t, String(t2.A), t0.A)
+	assertEqual(t, String(t3.A), t0.A)
 }
 
 type AfterCallbackT struct {
