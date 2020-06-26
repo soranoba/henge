@@ -12,7 +12,7 @@ import (
 // because it copy including the private field when input and output are same type.
 type AfterCallback interface {
 	// src is a non-pointer type.
-	afterHenge(src interface{})
+	AfterHenge(src interface{})
 }
 
 // Convert an interface to another.
@@ -46,7 +46,7 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 	}
 
 	if afterCallback, ok := out.Addr().Interface().(AfterCallback); ok {
-		defer afterCallback.afterHenge(in.Interface())
+		defer afterCallback.AfterHenge(in.Interface())
 	}
 
 	// Types that are simply converted (it also copies private fields)
