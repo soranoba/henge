@@ -1,6 +1,7 @@
 package henge
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -36,7 +37,7 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 	}
 
 	if !out.CanSet() {
-		panic("henge.Copy only allows values that can be writable out")
+		panic(fmt.Sprintf("henge.Copy only allows values that can be writable out: %#v", out))
 	}
 
 	in = reflect.Indirect(in)
@@ -149,9 +150,18 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 
 		for idx, pair := range getPairs(ite) {
 			if idx < out.Len() {
-				deepCopy(pair.Value, out.Index(idx))
+				v := out.Index(idx)
+				if v.Kind() == reflect.Ptr && v.IsNil() {
+					v.Set(reflect.New(v.Type().Elem()))
+				}
+				deepCopy(pair.Value, v)
+			} else if out.Kind() == reflect.Array {
+				break
 			} else {
 				c := reflect.New(out.Type().Elem()).Elem()
+				if c.Kind() == reflect.Ptr && c.IsNil() {
+					c.Set(reflect.New(c.Type().Elem()))
+				}
 				deepCopy(pair.Value, c)
 				out.Set(reflect.Append(out, c))
 			}

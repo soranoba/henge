@@ -34,14 +34,78 @@ func TestCopy_Nil(t *testing.T) {
 }
 
 func TestCopy_Array(t *testing.T) {
-	arrInt := []int{1, 2, 3}
+	arrInt := [...]int{1, 2, 3}
 	arrIntDst1 := make([]int, 3)
 	Copy(arrInt, &arrIntDst1)
-	assertEqual(t, arrIntDst1, arrInt)
+	assertEqual(t, arrIntDst1, []int{1, 2, 3})
 
 	var arrIntDst2 []int
 	Copy(arrInt, &arrIntDst2)
-	assertEqual(t, arrIntDst2, arrInt)
+	assertEqual(t, arrIntDst2, []int{1, 2, 3})
+
+	var arrIntDst3 [2]int
+	Copy(arrInt, &arrIntDst3)
+	assertEqual(t, arrIntDst3, [2]int{1, 2})
+}
+
+func TestCopy_Slice(t *testing.T) {
+	sliceInt := []int{1, 2, 3}
+	sliceIntDst1 := make([]int, 3)
+	Copy(sliceInt, &sliceIntDst1)
+	assertEqual(t, sliceIntDst1, []int{1, 2, 3})
+
+	var sliceIntDst2 []int
+	Copy(sliceInt, &sliceIntDst2)
+	assertEqual(t, sliceIntDst2, []int{1, 2, 3})
+
+	var sliceIntDst3 [2]int
+	Copy(sliceInt, &sliceIntDst3)
+	assertEqual(t, sliceIntDst3, [2]int{1, 2})
+}
+
+func TestCopy_ArrayStruct(t *testing.T) {
+	type T struct {
+		A string
+	}
+
+	arrSrc1 := [...]T{{A: "a"}, {A: "b"}}
+	arrSrc2 := [...]*T{{A: "a"}, {A: "b"}}
+
+	arrDst1 := make([]T, 2)
+	Copy(arrSrc1, &arrDst1)
+	assertEqual(t, arrDst1, []T{{A: "a"}, {A: "b"}})
+
+	arrDst2 := make([]T, 2)
+	Copy(arrSrc2, &arrDst2)
+	assertEqual(t, arrDst2, []T{{A: "a"}, {A: "b"}})
+
+	arrDst3 := make([]*T, 2)
+	Copy(arrSrc1, &arrDst3)
+	assertEqual(t, *arrDst3[0], T{A: "a"})
+	assertEqual(t, *arrDst3[1], T{A: "b"})
+
+	arrDst4 := make([]*T, 2)
+	Copy(arrSrc2, &arrDst4)
+	assertEqual(t, *arrDst4[0], T{A: "a"})
+	assertEqual(t, *arrDst4[1], T{A: "b"})
+
+	var arrDst5 []T
+	Copy(arrSrc1, &arrDst5)
+	assertEqual(t, arrDst5, []T{{A: "a"}, {A: "b"}})
+
+	var arrDst6 []T
+	Copy(arrSrc2, &arrDst6)
+	assertEqual(t, arrDst6, []T{{A: "a"}, {A: "b"}})
+
+	var arrDst7 []*T
+	Copy(arrSrc1, &arrDst7)
+	assertEqual(t, *arrDst7[0], T{A: "a"})
+	assertEqual(t, *arrDst7[1], T{A: "b"})
+
+	var arrDst8 []*T
+	Copy(arrSrc2, &arrDst8)
+	assertEqual(t, *arrDst8[0], T{A: "a"})
+	assertEqual(t, *arrDst8[1], T{A: "b"})
 }
 
 func TestCopy_Map(t *testing.T) {
