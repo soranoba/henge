@@ -4,6 +4,16 @@ import (
 	"reflect"
 )
 
+// When henge.Copy is executed, afterHenge is called
+// if this interface is implemented on the output type.
+//
+// No callback is provided before processing,
+// because it copy including the private field when input and output are same type.
+type AfterCallback interface {
+	// src is a non-pointer type.
+	afterHenge(src interface{})
+}
+
 // Convert an interface to another.
 // Example:
 //
@@ -32,6 +42,10 @@ func deepCopy(in reflect.Value, out reflect.Value) {
 	in = reflect.Indirect(in)
 	if !in.IsValid() {
 		return
+	}
+
+	if afterCallback, ok := out.Addr().Interface().(AfterCallback); ok {
+		defer afterCallback.afterHenge(in.Interface())
 	}
 
 	// Types that are simply converted (it also copies private fields)

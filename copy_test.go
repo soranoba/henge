@@ -156,3 +156,38 @@ func TestCopy_EmbededField(t *testing.T) {
 	assertEqual(t, t1.A, t0.A)
 	assertEqual(t, String(t2.A), t0.A)
 }
+
+type AfterCallbackT struct {
+	A string
+	B string
+}
+
+func (t *AfterCallbackT) afterHenge(src interface{}) {
+	t.A = "a_overwrite"
+	if _, ok := src.(AfterCallbackT); ok {
+		t.B = "b_overwrite"
+	}
+}
+
+func TestCopy_Callbacks(t *testing.T) {
+	src1 := struct {
+		A string
+	}{
+		A: "aaaa",
+	}
+
+	var a1 AfterCallbackT
+	Copy(src1, &a1)
+	assertEqual(t, a1.A, "a_overwrite")
+	assertEqual(t, a1.B, "")
+
+	var a2 AfterCallbackT
+	Copy(a1, &a2)
+	assertEqual(t, a2.A, "a_overwrite")
+	assertEqual(t, a2.B, "b_overwrite")
+
+	var a3 AfterCallbackT
+	Copy(&a1, &a3)
+	assertEqual(t, a2.A, "a_overwrite")
+	assertEqual(t, a2.B, "b_overwrite")
+}
