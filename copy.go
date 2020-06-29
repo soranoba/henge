@@ -111,8 +111,8 @@ func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
 		for _, pair := range getPairs(ite) {
 			kc := reflect.New(kt)
 			vc := reflect.New(vt)
-			deepCopy(pair.Key, kc)
-			deepCopy(pair.Value, vc)
+			deepCopy(pair.Key, kc, opts...)
+			deepCopy(pair.Value, vc, opts...)
 			out.SetMapIndex(pair.Key, pair.Value)
 		}
 	case reflect.Struct:
@@ -148,10 +148,10 @@ func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
 			v = out.FieldByName(fieldName)
 			if v.IsValid() {
 				if dst := reflect.Indirect(v); dst.CanSet() {
-					deepCopy(pair.Value, dst)
+					deepCopy(pair.Value, dst, opts...)
 				} else if v.Type().Kind() == reflect.Ptr && v.CanSet() {
 					dst := reflect.New(v.Type().Elem())
-					deepCopy(pair.Value, dst)
+					deepCopy(pair.Value, dst, opts...)
 					v.Set(dst)
 				}
 			}
@@ -170,7 +170,7 @@ func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
 				if v.Kind() == reflect.Ptr && v.IsNil() {
 					v.Set(reflect.New(v.Type().Elem()))
 				}
-				deepCopy(pair.Value, v)
+				deepCopy(pair.Value, v, opts...)
 			} else if out.Kind() == reflect.Array {
 				break
 			} else {
@@ -178,7 +178,7 @@ func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
 				if c.Kind() == reflect.Ptr && c.IsNil() {
 					c.Set(reflect.New(c.Type().Elem()))
 				}
-				deepCopy(pair.Value, c)
+				deepCopy(pair.Value, c, opts...)
 				out.Set(reflect.Append(out, c))
 			}
 		}

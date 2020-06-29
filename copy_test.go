@@ -262,4 +262,10 @@ func TestCopy_Callbacks(t *testing.T) {
 	Copy(&a1, &a3)
 	assertEqual(t, a2.A, "aaaa")
 	assertEqual(t, a2.B, "b_overwrite")
+
+	var a4 []AfterCallbackT
+	Copy([...]struct{ A string }{src1}, &a4, Options{"A": "a_overwrite"})
+	assertEqual(t, len(a4), 1)
+	assertEqual(t, a4[0].A, "a_overwrite")
+	assertEqual(t, a4[0].B, "")
 }
