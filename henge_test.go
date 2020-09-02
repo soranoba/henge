@@ -136,8 +136,11 @@ func TestString(t *testing.T) {
 
 	// float64
 	f := 1.2
-	assertEqual(t, String(f), "1.200000")
-	assertEqual(t, String(&f), "1.200000")
+	assertEqual(t, String(f), "1.2")
+	assertEqual(t, String(&f), "1.2")
+	f = 1.125
+	assertEqual(t, String(f), "1.125")
+	assertEqual(t, String(&f), "1.125")
 
 	// bool
 	b := true
@@ -172,11 +175,45 @@ func TestIntPtr(t *testing.T) {
 	assertEqual(t, *IntPtr("123"), int64(123))
 }
 
+func TestUintPtr(t *testing.T) {
+	assertNil(t, UintPtr(nil))
+	assertNil(t, UintPtr((*string)(nil)))
+	assertEqual(t, *UintPtr(123), uint64(123))
+	assertEqual(t, *UintPtr("123"), uint64(123))
+}
+
+func TestFloatPtr(t *testing.T) {
+	assertNil(t, FloatPtr(nil))
+	assertNil(t, FloatPtr((*string)(nil)))
+	assertEqual(t, *FloatPtr(123.5), float64(123.5))
+	assertEqual(t, *FloatPtr("123.5"), float64(123.5))
+}
+
 func TestStringPtr(t *testing.T) {
 	assertNil(t, StringPtr(nil))
 	assertNil(t, StringPtr((*int)(nil)))
 	assertEqual(t, *StringPtr(123), "123")
 	assertEqual(t, *StringPtr("hoge"), "hoge")
+}
+
+func TestIntSlice(t *testing.T) {
+	assertNil(t, IntSlice(nil))
+	assertEqual(t, IntSlice([]interface{}{"1", 2, "x"}), []int64{1, 2, 0})
+}
+
+func TestUintSlice(t *testing.T) {
+	assertNil(t, UintSlice(nil))
+	assertEqual(t, UintSlice([]interface{}{"1", 2, "x"}), []uint64{1, 2, 0})
+}
+
+func TestFloatSlice(t *testing.T) {
+	assertNil(t, FloatSlice(nil))
+	assertEqual(t, FloatSlice([]interface{}{"1.5", 2.5, "x"}), []float64{1.5, 2.5, 0})
+}
+
+func TestStringSlice(t *testing.T) {
+	assertNil(t, StringSlice(nil))
+	assertEqual(t, StringSlice([]interface{}{1, "2", 3.5}), []string{"1", "2", "3.5"})
 }
 
 func TestMap(t *testing.T) {

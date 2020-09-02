@@ -1,7 +1,6 @@
 package henge
 
 import (
-	"fmt"
 	"reflect"
 	"strconv"
 )
@@ -106,7 +105,7 @@ func String(in interface{}) (out string) {
 		inT.Kind() == reflect.Float64 {
 		var f float64
 		f = inV.Convert(reflect.TypeOf(f)).Interface().(float64)
-		out = fmt.Sprintf("%f", f)
+		out = strconv.FormatFloat(f, 'f', -1, 64)
 	} else if inT.Kind() == reflect.Bool {
 		if inV.Interface().(bool) == true {
 			out = "true"
@@ -169,6 +168,58 @@ func StringPtr(in interface{}) *string {
 
 	s := String(in)
 	return &s
+}
+
+// Converts and returns array of interface to array of int64.
+func IntSlice(in []interface{}) []int64 {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]int64, len(in))
+	for i, el := range in {
+		out[i] = Int(el)
+	}
+	return out
+}
+
+// Converts and returns slice of interface to slice of uint64.
+func UintSlice(in []interface{}) []uint64 {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]uint64, len(in))
+	for i, el := range in {
+		out[i] = Uint(el)
+	}
+	return out
+}
+
+// Converts and returns slice of interface to slice of float64.
+func FloatSlice(in []interface{}) []float64 {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]float64, len(in))
+	for i, el := range in {
+		out[i] = Float(el)
+	}
+	return out
+}
+
+// Converts and returns slice of interface to slice of string.
+func StringSlice(in []interface{}) []string {
+	if in == nil {
+		return nil
+	}
+
+	out := make([]string, len(in))
+	for i, el := range in {
+		out[i] = String(el)
+	}
+	return out
 }
 
 // Convert a struct to a map.
