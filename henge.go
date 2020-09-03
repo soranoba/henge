@@ -171,53 +171,105 @@ func StringPtr(in interface{}) *string {
 }
 
 // Converts and returns array of interface to array of int64.
-func IntSlice(in []interface{}) []int64 {
-	if in == nil {
+func IntSlice(in interface{}) []int64 {
+	val := reflect.ValueOf(in)
+	switch val.Kind() {
+	case reflect.Array, reflect.Slice:
+		break
+	default:
+		panic("IntSlice only accepts slice or array")
+	}
+
+	if val.IsNil() {
 		return nil
 	}
 
-	out := make([]int64, len(in))
-	for i, el := range in {
-		out[i] = Int(el)
+	out := make([]int64, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		v := val.Index(i)
+		if v.CanInterface() {
+			out[i] = Int(v.Interface())
+		} else {
+			out[i] = 0
+		}
 	}
 	return out
 }
 
 // Converts and returns slice of interface to slice of uint64.
-func UintSlice(in []interface{}) []uint64 {
-	if in == nil {
+func UintSlice(in interface{}) []uint64 {
+	val := reflect.ValueOf(in)
+	switch val.Kind() {
+	case reflect.Array, reflect.Slice:
+		break
+	default:
+		panic("UintSlice only accepts slice or array")
+	}
+
+	if val.IsNil() {
 		return nil
 	}
 
-	out := make([]uint64, len(in))
-	for i, el := range in {
-		out[i] = Uint(el)
+	out := make([]uint64, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		v := val.Index(i)
+		if v.CanInterface() {
+			out[i] = Uint(v.Interface())
+		} else {
+			out[i] = 0
+		}
 	}
 	return out
 }
 
 // Converts and returns slice of interface to slice of float64.
-func FloatSlice(in []interface{}) []float64 {
-	if in == nil {
+func FloatSlice(in interface{}) []float64 {
+	val := reflect.ValueOf(in)
+	switch val.Kind() {
+	case reflect.Array, reflect.Slice:
+		break
+	default:
+		panic("UintSlice only accepts slice or array")
+	}
+
+	if val.IsNil() {
 		return nil
 	}
 
-	out := make([]float64, len(in))
-	for i, el := range in {
-		out[i] = Float(el)
+	out := make([]float64, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		v := val.Index(i)
+		if v.CanInterface() {
+			out[i] = Float(v.Interface())
+		} else {
+			out[i] = 0
+		}
 	}
 	return out
 }
 
 // Converts and returns slice of interface to slice of string.
-func StringSlice(in []interface{}) []string {
-	if in == nil {
+func StringSlice(in interface{}) []string {
+	val := reflect.ValueOf(in)
+	switch val.Kind() {
+	case reflect.Array, reflect.Slice:
+		break
+	default:
+		panic("UintSlice only accepts slice or array")
+	}
+
+	if val.IsNil() {
 		return nil
 	}
 
-	out := make([]string, len(in))
-	for i, el := range in {
-		out[i] = String(el)
+	out := make([]string, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		v := val.Index(i)
+		if v.CanInterface() {
+			out[i] = String(v.Interface())
+		} else {
+			out[i] = ""
+		}
 	}
 	return out
 }

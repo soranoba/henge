@@ -197,23 +197,27 @@ func TestStringPtr(t *testing.T) {
 }
 
 func TestIntSlice(t *testing.T) {
-	assertNil(t, IntSlice(nil))
+	assertNil(t, IntSlice(([]interface{})(nil)))
 	assertEqual(t, IntSlice([]interface{}{"1", 2, "x"}), []int64{1, 2, 0})
+	assertEqual(t, IntSlice([]string{"1", "2", "3"}), []int64{1, 2, 3})
 }
 
 func TestUintSlice(t *testing.T) {
-	assertNil(t, UintSlice(nil))
+	assertNil(t, UintSlice(([]interface{})(nil)))
 	assertEqual(t, UintSlice([]interface{}{"1", 2, "x"}), []uint64{1, 2, 0})
+	assertEqual(t, UintSlice([]string{"1", "2", "3"}), []uint64{1, 2, 3})
 }
 
 func TestFloatSlice(t *testing.T) {
-	assertNil(t, FloatSlice(nil))
+	assertNil(t, FloatSlice(([]interface{})(nil)))
 	assertEqual(t, FloatSlice([]interface{}{"1.5", 2.5, "x"}), []float64{1.5, 2.5, 0})
+	assertEqual(t, FloatSlice([]string{"1.5", "2.5", "3.5"}), []float64{1.5, 2.5, 3.5})
 }
 
 func TestStringSlice(t *testing.T) {
-	assertNil(t, StringSlice(nil))
+	assertNil(t, StringSlice(([]interface{})(nil)))
 	assertEqual(t, StringSlice([]interface{}{1, "2", 3.5}), []string{"1", "2", "3.5"})
+	assertEqual(t, StringSlice([]int{1, 2, 3}), []string{"1", "2", "3"})
 }
 
 func TestMap(t *testing.T) {
