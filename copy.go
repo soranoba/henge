@@ -164,6 +164,10 @@ func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
 			return
 		}
 
+		if out.Kind() == reflect.Slice {
+			out.Set(reflect.MakeSlice(out.Type(), ite.Count(), ite.Count()))
+		}
+
 		for idx, pair := range getPairs(ite) {
 			if idx < out.Len() {
 				v := out.Index(idx)
@@ -171,15 +175,6 @@ func deepCopy(in reflect.Value, out reflect.Value, opts ...Options) {
 					v.Set(reflect.New(v.Type().Elem()))
 				}
 				deepCopy(pair.Value, v, opts...)
-			} else if out.Kind() == reflect.Array {
-				break
-			} else {
-				c := reflect.New(out.Type().Elem()).Elem()
-				if c.Kind() == reflect.Ptr && c.IsNil() {
-					c.Set(reflect.New(c.Type().Elem()))
-				}
-				deepCopy(pair.Value, c, opts...)
-				out.Set(reflect.Append(out, c))
 			}
 		}
 	}

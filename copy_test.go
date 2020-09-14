@@ -61,6 +61,11 @@ func TestCopy_Slice(t *testing.T) {
 	var sliceIntDst3 [2]int
 	Copy(sliceInt, &sliceIntDst3)
 	assertEqual(t, sliceIntDst3, [2]int{1, 2})
+
+	emptySlice := []int{}
+	var sliceIntDst4 []int
+	Copy(emptySlice, &sliceIntDst4)
+	assertEqual(t, sliceIntDst4, []int{})
 }
 
 func TestCopy_ArrayStruct(t *testing.T) {
