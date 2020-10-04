@@ -4,6 +4,7 @@ build:
 
 test:
 	go test ./...
+	cd tests; go test ./...
 
 format:
 	gofmt -w ./
