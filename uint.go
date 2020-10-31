@@ -71,7 +71,7 @@ type UnsignedIntegerConverter struct {
 }
 
 func (c *UnsignedIntegerConverter) Ptr() *UnsignedIntegerPtrConverter {
-	if c.err != nil {
+	if c.err != nil || c.isNil {
 		return &UnsignedIntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
 	return &UnsignedIntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}

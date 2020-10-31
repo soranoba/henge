@@ -70,7 +70,7 @@ type IntegerConverter struct {
 }
 
 func (c *IntegerConverter) Ptr() *IntegerPtrConverter {
-	if c.err != nil {
+	if c.err != nil || c.isNil {
 		return &IntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
 	return &IntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}

@@ -1,17 +1,10 @@
 package henge
 
 type converter struct {
+	isNil   bool
 	field   string
 	opts    ConverterOpts
 	storage map[string]interface{}
-}
-
-func newConverter(fs ...func(*ConverterOpts)) converter {
-	opts := defaultConverterOpts()
-	for _, f := range fs {
-		f(&opts)
-	}
-	return converter{opts: opts, storage: map[string]interface{}{}}
 }
 
 func (c *converter) new(i interface{}, fieldName string) *ValueConverter {

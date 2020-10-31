@@ -11,7 +11,28 @@ type ValueConverter struct {
 }
 
 func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
-	return &ValueConverter{converter: newConverter(fs...), value: i, err: nil}
+	opts := defaultConverterOpts()
+	for _, f := range fs {
+		f(&opts)
+	}
+
+	inV := reflect.ValueOf(i)
+	isNil := false
+	if inV.Kind() == reflect.Ptr {
+		if isNil = inV.IsNil(); isNil {
+			i = reflect.New(inV.Type().Elem()).Interface()
+		}
+	}
+
+	return &ValueConverter{
+		converter: converter{
+			isNil:   isNil,
+			opts:    opts,
+			storage: map[string]interface{}{},
+		},
+		value: i,
+		err:   nil,
+	}
 }
 
 func (c *ValueConverter) Convert(out interface{}) error {

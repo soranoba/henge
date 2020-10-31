@@ -29,4 +29,13 @@ func TestUnsignedIntegerConverter_Ptr(t *testing.T) {
 		assert.Equal(t, uint64(124), *ptr)
 	}
 	assert.NoError(t, err)
+
+	// NOTE: nil treats as a zero value, but Ptr keeps nil
+	ptr, err = henge.New((*int)(nil)).Uint().Ptr().Result()
+	assert.Nil(t, ptr)
+	assert.NoError(t, err)
+
+	ptr, err = henge.New((*struct{})(nil)).Uint().Ptr().Result()
+	assert.Nil(t, ptr)
+	assert.Error(t, err)
 }

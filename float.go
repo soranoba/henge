@@ -64,7 +64,7 @@ func (c *FloatConverter) Uint() *UnsignedIntegerConverter {
 }
 
 func (c *FloatConverter) Ptr() *FloatPtrConverter {
-	if c.err != nil {
+	if c.err != nil || c.isNil {
 		return &FloatPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
 	return &FloatPtrConverter{converter: c.converter, value: &c.value, err: c.err}

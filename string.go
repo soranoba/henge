@@ -64,7 +64,7 @@ type StringConverter struct {
 }
 
 func (c *StringConverter) Ptr() *StringPtrConverter {
-	if c.err != nil {
+	if c.err != nil || c.isNil {
 		return &StringPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
 	return &StringPtrConverter{converter: c.converter, value: &c.value, err: nil}
