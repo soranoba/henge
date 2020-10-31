@@ -1,11 +1,9 @@
 package henge
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
-	"testing"
 )
 
 func ExampleValueConverter_Float() {
@@ -56,24 +54,5 @@ func ExampleValueConverter_Float() {
 	// "179769313486231570814527423731704356798070567525844996598917476803157260780028538760589558632766878171540458953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368.0000000000" -> 1.7976931348623157e+308
 	// "1.7976900000e+308" -> 1.79769e+308
 	// "1.7976931349e+308" -> +Inf
-	// "Failed to convert from string to float64: fields=, error=strconv.ParseFloat: parsing \"1.1.1\": invalid syntax"
-}
-
-func TestFloatConverterPtr(t *testing.T) {
-	ptr, err := (&FloatConverter{value: 0, err: errors.New("error")}).Ptr().Result()
-	if ptr != nil || err == nil {
-		t.Error(ptr)
-	}
-	ptr, err = (&FloatConverter{value: 0, err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != 0 {
-		t.Error(*ptr)
-	}
-	ptr, err = (&FloatConverter{value: 1, err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != 1 {
-		t.Error(*ptr)
-	}
+	// "Failed to convert from string to float64: fields=, value=\"1.1.1\", error=strconv.ParseFloat: parsing \"1.1.1\": invalid syntax"
 }

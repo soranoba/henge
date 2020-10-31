@@ -1,11 +1,9 @@
 package henge
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
-	"testing"
 )
 
 func ExampleValueConverter_Uint() {
@@ -39,17 +37,17 @@ func ExampleValueConverter_Uint() {
 	// Output:
 	// int64 to uint64
 	// 9223372036854775807 -> 9223372036854775807
-	// "Failed to convert from int to uint64: fields=, error=negative number"
+	// "Failed to convert from int to uint64: fields=, value=-9223372036854775808, error=negative number"
 	//
 	// uint64 to uint64
 	// 18446744073709551615 -> 18446744073709551615
 	//
 	// float64 to uint64
 	// 1.25 -> 1
-	// "Failed to convert from float64 to uint64: fields=, error=negative number"
+	// "Failed to convert from float64 to uint64: fields=, value=-1.25, error=negative number"
 	// 4294967295 -> 4294967295
-	// "Failed to convert from float64 to uint64: fields=, error=overflows"
-	// "Failed to convert from float64 to uint64: fields=, error=overflows"
+	// "Failed to convert from float64 to uint64: fields=, value=1.8446744073709552e+19, error=overflows"
+	// "Failed to convert from float64 to uint64: fields=, value=1.7976931348623157e+308, error=overflows"
 	//
 	// bool to uint64
 	// true -> 1
@@ -57,25 +55,6 @@ func ExampleValueConverter_Uint() {
 	//
 	// string to uint64
 	// "18446744073709551615" -> 18446744073709551615
-	// "Failed to convert from string to uint64: fields=, error=strconv.ParseUint: parsing \"1.5\": invalid syntax"
-	// "Failed to convert from string to uint64: fields=, error=strconv.ParseUint: parsing \"-2\": invalid syntax"
-}
-
-func TestUnsignedIntegerConverterPtr(t *testing.T) {
-	ptr, err := (&UnsignedIntegerConverter{value: 0, err: errors.New("error")}).Ptr().Result()
-	if ptr != nil || err == nil {
-		t.Error(ptr)
-	}
-	ptr, err = (&UnsignedIntegerConverter{value: 0, err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != 0 {
-		t.Error(*ptr)
-	}
-	ptr, err = (&UnsignedIntegerConverter{value: 1, err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != 1 {
-		t.Error(*ptr)
-	}
+	// "Failed to convert from string to uint64: fields=, value=\"1.5\", error=strconv.ParseUint: parsing \"1.5\": invalid syntax"
+	// "Failed to convert from string to uint64: fields=, value=\"-2\", error=strconv.ParseUint: parsing \"-2\": invalid syntax"
 }

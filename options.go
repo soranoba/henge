@@ -26,12 +26,6 @@ func defaultConverterOpts() ConverterOpts {
 	}
 }
 
-func withOpts(opts ConverterOpts) func(*ConverterOpts) {
-	return func(dstOpts *ConverterOpts) {
-		*dstOpts = opts
-	}
-}
-
 func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.stringOpts.fmt = fmt

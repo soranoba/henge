@@ -20,8 +20,9 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 		for iter.Next() {
 			iterV := iter.Value()
 			if reflect.Indirect(iterV).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
+				strKey := New(iter.Key().Interface()).String().Value()
 				var v interface{}
-				if v, err = New(iterV.Interface(), withOpts(c.opts)).mapWithDepth(depth + 1).Result(); err != nil {
+				if v, err = c.new(iterV.Interface(), c.field+"."+strKey).mapWithDepth(depth + 1).Result(); err != nil {
 					break
 				}
 				value[iter.Key().Interface()] = v
@@ -34,11 +35,12 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 		for i := 0; i < inV.NumField(); i++ {
 			field := inV.Field(i)
 			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
+				key := inV.Type().Field(i).Name
 				var v interface{}
-				if v, err = New(field.Interface(), withOpts(c.opts)).mapWithDepth(depth + 1).Result(); err != nil {
+				if v, err = c.new(field.Interface(), c.field+"."+key).mapWithDepth(depth + 1).Result(); err != nil {
 					break
 				}
-				value[inV.Type().Field(i).Name] = v
+				value[key] = v
 			} else {
 				value[inV.Type().Field(i).Name] = inV.Field(i).Interface()
 			}
@@ -46,10 +48,11 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 	default:
 		err = unsupportedTypeErr
 	}
-	return &MapConverter{value: value, err: err}
+	return &MapConverter{converter: c.converter, value: value, err: err}
 }
 
 type MapConverter struct {
+	converter
 	value map[interface{}]interface{}
 	err   error
 }
@@ -72,10 +75,11 @@ func (c *MapConverter) Convert(out interface{}) error {
 		for k, v := range c.value {
 			keyV := reflect.New(outV.Type().Key())
 			valueV := reflect.New(outV.Type().Elem())
-			if err := New(k).Convert(keyV.Interface()); err != nil {
+			strKey := New(keyV).String().Value()
+			if err := c.new(k, c.field+"[]"+strKey).Convert(keyV.Interface()); err != nil {
 				return err
 			}
-			if err := New(v).Convert(valueV.Interface()); err != nil {
+			if err := c.new(v, c.field+"["+strKey+"]").Convert(valueV.Interface()); err != nil {
 				return err
 			}
 			outV.SetMapIndex(keyV.Elem(), valueV.Elem())
@@ -83,11 +87,11 @@ func (c *MapConverter) Convert(out interface{}) error {
 	case reflect.Struct:
 		m := map[string]interface{}{}
 		for k, v := range c.value {
-			stringKey, err := New(k).String().Result()
+			strKey, err := c.new(k, c.field+"[]").String().Result()
 			if err != nil {
 				return err
 			}
-			m[stringKey] = v
+			m[strKey] = v
 		}
 
 		for _, outField := range getStructFields(outV.Type()) {
@@ -112,7 +116,7 @@ func (c *MapConverter) Convert(out interface{}) error {
 				if target.Kind() != reflect.Ptr {
 					target = target.Addr()
 				}
-				if err := New(value).Convert(target.Interface()); err != nil {
+				if err := c.new(value, c.field+"."+outField.name).Convert(target.Interface()); err != nil {
 					return err
 				}
 			}

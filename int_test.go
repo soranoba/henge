@@ -1,11 +1,9 @@
 package henge
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"strconv"
-	"testing"
 )
 
 func ExampleValueConverter_Int() {
@@ -44,14 +42,14 @@ func ExampleValueConverter_Int() {
 	//
 	// uint64 to int64
 	// 123 -> 123
-	// "Failed to convert from uint64 to int64: fields=, error=overflows"
+	// "Failed to convert from uint64 to int64: fields=, value=0xffffffffffffffff, error=overflows"
 	//
 	// float64 to int64
 	// 1.25 -> 1
 	// -1.25 -> -2
 	// 2147483647 -> 2147483647
-	// "Failed to convert from float64 to int64: fields=, error=overflows"
-	// "Failed to convert from float64 to int64: fields=, error=overflows"
+	// "Failed to convert from float64 to int64: fields=, value=9.223372036854776e+18, error=overflows"
+	// "Failed to convert from float64 to int64: fields=, value=1.7976931348623157e+308, error=overflows"
 	//
 	// bool to int64
 	// true -> 1
@@ -59,25 +57,6 @@ func ExampleValueConverter_Int() {
 	//
 	// string to int64
 	// "9223372036854775807" -> 9223372036854775807
-	// "Failed to convert from string to int64: fields=, error=strconv.ParseInt: parsing \"1.5\": invalid syntax"
-	// "Failed to convert from string to int64: fields=, error=strconv.ParseInt: parsing \"-1.5\": invalid syntax"
-}
-
-func TestIntegerConverterPtr(t *testing.T) {
-	ptr, err := (&IntegerConverter{value: 0, err: errors.New("error")}).Ptr().Result()
-	if ptr != nil || err == nil {
-		t.Error(ptr)
-	}
-	ptr, err = (&IntegerConverter{value: 0, err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != 0 {
-		t.Error(*ptr)
-	}
-	ptr, err = (&IntegerConverter{value: 1, err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != 1 {
-		t.Error(*ptr)
-	}
+	// "Failed to convert from string to int64: fields=, value=\"1.5\", error=strconv.ParseInt: parsing \"1.5\": invalid syntax"
+	// "Failed to convert from string to int64: fields=, value=\"-1.5\", error=strconv.ParseInt: parsing \"-1.5\": invalid syntax"
 }

@@ -47,25 +47,27 @@ func (c *ValueConverter) String() *StringConverter {
 
 	if err != nil {
 		err = &ConvertError{
-			Field:   "",
+			Field:   c.field,
 			SrcType: reflect.ValueOf(c.value).Type(),
 			DstType: reflect.ValueOf((*string)(nil)).Type().Elem(),
+			Value:   c.value,
 			Err:     err,
 		}
 	}
-	return &StringConverter{value: value, err: err}
+	return &StringConverter{converter: c.converter, value: value, err: err}
 }
 
 type StringConverter struct {
+	converter
 	value string
 	err   error
 }
 
 func (c *StringConverter) Ptr() *StringPtrConverter {
 	if c.err != nil {
-		return &StringPtrConverter{value: nil, err: c.err}
+		return &StringPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
-	return &StringPtrConverter{value: &c.value, err: nil}
+	return &StringPtrConverter{converter: c.converter, value: &c.value, err: nil}
 }
 
 func (c *StringConverter) Convert(out interface{}) error {
@@ -86,7 +88,7 @@ func (c *StringConverter) Convert(out interface{}) error {
 	case reflect.String:
 		outV.Set(reflect.ValueOf(c.value))
 	default:
-		return New(c.value).Convert(out)
+		return c.new(c.value, c.field).Convert(out)
 	}
 	return nil
 }
@@ -104,6 +106,7 @@ func (c *StringConverter) Error() error {
 }
 
 type StringPtrConverter struct {
+	converter
 	value *string
 	err   error
 }

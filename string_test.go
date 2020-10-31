@@ -1,10 +1,8 @@
 package henge
 
 import (
-	"errors"
 	"fmt"
 	"math"
-	"testing"
 )
 
 func ExampleValueConverter_String() {
@@ -18,6 +16,7 @@ func ExampleValueConverter_String() {
 	fmt.Println()
 
 	fmt.Println("float64 to string")
+	fmt.Printf("%v -> %#v\n", 2.5, New(2.5).String().Value())
 	fmt.Printf("%v -> %#v\n", math.MaxFloat64, New(math.MaxFloat64).String().Value())
 	fmt.Printf("%v -> %#v\n", math.MaxFloat64, New(math.MaxFloat64, WithFloatFormat('e', 2)).String().Value())
 	fmt.Printf("%v -> %#v\n", math.SmallestNonzeroFloat64, New(math.SmallestNonzeroFloat64).String().Value())
@@ -41,6 +40,7 @@ func ExampleValueConverter_String() {
 	// 18446744073709551615 -> "18446744073709551615"
 	//
 	// float64 to string
+	// 2.5 -> "2.5"
 	// 1.7976931348623157e+308 -> "179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	// 1.7976931348623157e+308 -> "1.80e+308"
 	// 5e-324 -> "0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005"
@@ -52,23 +52,4 @@ func ExampleValueConverter_String() {
 	//
 	// string to string
 	// aaa -> aaa
-}
-
-func TestStringConverterPtr(t *testing.T) {
-	ptr, err := (&StringConverter{value: "", err: errors.New("error")}).Ptr().Result()
-	if ptr != nil || err == nil {
-		t.Error(ptr)
-	}
-	ptr, err = (&StringConverter{value: "", err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != "" {
-		t.Error(*ptr)
-	}
-	ptr, err = (&StringConverter{value: "aaa", err: nil}).Ptr().Result()
-	if ptr == nil || err != nil {
-		t.Error(err)
-	} else if *ptr != "aaa" {
-		t.Error(*ptr)
-	}
 }

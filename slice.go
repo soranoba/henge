@@ -18,10 +18,11 @@ func (c *ValueConverter) Slice() *SliceConverter {
 	default:
 		err = unsupportedTypeErr
 	}
-	return &SliceConverter{value: value, err: err}
+	return &SliceConverter{converter: c.converter, value: value, err: err}
 }
 
 type SliceConverter struct {
+	converter
 	value []interface{}
 	err   error
 }
@@ -46,7 +47,8 @@ func (c *SliceConverter) Convert(out interface{}) error {
 		v := reflect.New(reflect.ArrayOf(outV.Len(), outV.Type().Elem())).Elem()
 		for i := 0; i < inV.Len() && i < outV.Len(); i++ {
 			elem := reflect.New(outV.Type().Elem())
-			if err := New(inV.Index(i).Interface()).Convert(elem.Interface()); err != nil {
+			fieldName := c.field + "[" + New(i).String().Value() + "]"
+			if err := c.new(inV.Index(i).Interface(), fieldName).Convert(elem.Interface()); err != nil {
 				return err
 			}
 			v.Index(i).Set(elem.Elem())
@@ -61,7 +63,8 @@ func (c *SliceConverter) Convert(out interface{}) error {
 		v := reflect.MakeSlice(reflect.SliceOf(outV.Type().Elem()), inV.Len(), inV.Len())
 		for i := 0; i < inV.Len(); i++ {
 			elem := reflect.New(outV.Type().Elem())
-			if err := New(inV.Index(i).Interface()).Convert(elem.Interface()); err != nil {
+			fieldName := c.field + "[" + New(i).String().Value() + "]"
+			if err := c.new(inV.Index(i).Interface(), fieldName).Convert(elem.Interface()); err != nil {
 				return err
 			}
 			v.Index(i).Set(elem.Elem())
@@ -80,12 +83,13 @@ func (c *SliceConverter) IntSlice() *IntegerSliceConverter {
 	)
 
 	for i, v := range c.value {
-		value[i], err = New(v).Int().Result()
+		fieldName := c.field + "[" + New(i).String().Value() + "]"
+		value[i], err = c.new(v, fieldName).Int().Result()
 		if err != nil {
-			return &IntegerSliceConverter{value: nil, err: err}
+			return &IntegerSliceConverter{converter: c.converter, value: nil, err: err}
 		}
 	}
-	return &IntegerSliceConverter{value: value, err: nil}
+	return &IntegerSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
 func (c *SliceConverter) UintSlice() *UnsignedIntegerSliceConverter {
@@ -95,12 +99,13 @@ func (c *SliceConverter) UintSlice() *UnsignedIntegerSliceConverter {
 	)
 
 	for i, v := range c.value {
-		value[i], err = New(v).Uint().Result()
+		fieldName := c.field + "[" + New(i).String().Value() + "]"
+		value[i], err = c.new(v, fieldName).Uint().Result()
 		if err != nil {
-			return &UnsignedIntegerSliceConverter{value: nil, err: err}
+			return &UnsignedIntegerSliceConverter{converter: c.converter, value: nil, err: err}
 		}
 	}
-	return &UnsignedIntegerSliceConverter{value: value, err: nil}
+	return &UnsignedIntegerSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
 func (c *SliceConverter) FloatSlice() *FloatSliceConverter {
@@ -110,12 +115,13 @@ func (c *SliceConverter) FloatSlice() *FloatSliceConverter {
 	)
 
 	for i, v := range c.value {
-		value[i], err = New(v).Float().Result()
+		fieldName := c.field + "[" + New(i).String().Value() + "]"
+		value[i], err = c.new(v, fieldName).Float().Result()
 		if err != nil {
-			return &FloatSliceConverter{value: nil, err: err}
+			return &FloatSliceConverter{converter: c.converter, value: nil, err: err}
 		}
 	}
-	return &FloatSliceConverter{value: value, err: nil}
+	return &FloatSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
 func (c *SliceConverter) StringSlice() *StringSliceConverter {
@@ -125,12 +131,13 @@ func (c *SliceConverter) StringSlice() *StringSliceConverter {
 	)
 
 	for i, v := range c.value {
-		value[i], err = New(v).String().Result()
+		fieldName := c.field + "[" + New(i).String().Value() + "]"
+		value[i], err = c.new(v, fieldName).String().Result()
 		if err != nil {
-			return &StringSliceConverter{value: nil, err: err}
+			return &StringSliceConverter{converter: c.converter, value: nil, err: err}
 		}
 	}
-	return &StringSliceConverter{value: value, err: nil}
+	return &StringSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
 func (c *SliceConverter) Result() ([]interface{}, error) {
@@ -146,6 +153,7 @@ func (c *SliceConverter) Error() error {
 }
 
 type IntegerSliceConverter struct {
+	converter
 	value []int64
 	err   error
 }
@@ -163,6 +171,7 @@ func (c *IntegerSliceConverter) Error() error {
 }
 
 type UnsignedIntegerSliceConverter struct {
+	converter
 	value []uint64
 	err   error
 }
@@ -180,6 +189,7 @@ func (c *UnsignedIntegerSliceConverter) Error() error {
 }
 
 type FloatSliceConverter struct {
+	converter
 	value []float64
 	err   error
 }
@@ -197,6 +207,7 @@ func (c *FloatSliceConverter) Error() error {
 }
 
 type StringSliceConverter struct {
+	converter
 	value []string
 	err   error
 }

@@ -17,10 +17,11 @@ func (c *ValueConverter) Struct() *StructConverter {
 	default:
 		err = unsupportedTypeErr
 	}
-	return &StructConverter{value: value, err: err}
+	return &StructConverter{converter: c.converter, value: value, err: err}
 }
 
 type StructConverter struct {
+	converter
 	value interface{}
 	err   error
 }
@@ -79,13 +80,13 @@ func (c *StructConverter) Convert(out interface{}) error {
 				if target.Kind() != reflect.Ptr {
 					target = target.Addr()
 				}
-				if err := New(v.Interface()).Convert(target.Interface()); err != nil {
+				if err := c.new(v.Interface(), c.field+"."+outField.name).Convert(target.Interface()); err != nil {
 					return err
 				}
 			}
 		}
 	default:
-		return New(c.value).Convert(out)
+		return c.new(c.value, c.field).Convert(out)
 	}
 	return nil
 }

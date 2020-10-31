@@ -53,25 +53,27 @@ func (c *ValueConverter) Int() *IntegerConverter {
 
 	if err != nil {
 		err = &ConvertError{
-			Field:   "",
+			Field:   c.field,
 			SrcType: reflect.ValueOf(c.value).Type(),
 			DstType: reflect.ValueOf((*int64)(nil)).Type().Elem(),
+			Value:   c.value,
 			Err:     err,
 		}
 	}
-	return &IntegerConverter{value: value, err: err}
+	return &IntegerConverter{converter: c.converter, value: value, err: err}
 }
 
 type IntegerConverter struct {
+	converter
 	value int64
 	err   error
 }
 
 func (c *IntegerConverter) Ptr() *IntegerPtrConverter {
 	if c.err != nil {
-		return &IntegerPtrConverter{value: nil, err: c.err}
+		return &IntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
-	return &IntegerPtrConverter{value: &c.value, err: nil}
+	return &IntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}
 }
 
 func (c *IntegerConverter) Convert(out interface{}) error {
@@ -112,7 +114,7 @@ func (c *IntegerConverter) Convert(out interface{}) error {
 	case reflect.Int64:
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	default:
-		return New(c.value).Convert(out)
+		return c.new(c.value, c.field).Convert(out)
 	}
 	return nil
 }
@@ -130,6 +132,7 @@ func (c *IntegerConverter) Error() error {
 }
 
 type IntegerPtrConverter struct {
+	converter
 	value *int64
 	err   error
 }

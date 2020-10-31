@@ -5,17 +5,13 @@ import (
 )
 
 type ValueConverter struct {
-	opts  ConverterOpts
+	converter
 	value interface{}
 	err   error
 }
 
 func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
-	opts := defaultConverterOpts()
-	for _, f := range fs {
-		f(&opts)
-	}
-	return &ValueConverter{value: i, err: nil, opts: opts}
+	return &ValueConverter{converter: newConverter(fs...), value: i, err: nil}
 }
 
 func (c *ValueConverter) Convert(out interface{}) error {

@@ -54,25 +54,27 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 
 	if err != nil {
 		err = &ConvertError{
-			Field:   "",
+			Field:   c.field,
 			SrcType: reflect.ValueOf(c.value).Type(),
 			DstType: reflect.ValueOf((*uint64)(nil)).Type().Elem(),
+			Value:   c.value,
 			Err:     err,
 		}
 	}
-	return &UnsignedIntegerConverter{value: value, err: err}
+	return &UnsignedIntegerConverter{converter: c.converter, value: value, err: err}
 }
 
 type UnsignedIntegerConverter struct {
+	converter
 	value uint64
 	err   error
 }
 
 func (c *UnsignedIntegerConverter) Ptr() *UnsignedIntegerPtrConverter {
 	if c.err != nil {
-		return &UnsignedIntegerPtrConverter{value: nil, err: c.err}
+		return &UnsignedIntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
-	return &UnsignedIntegerPtrConverter{value: &c.value, err: nil}
+	return &UnsignedIntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}
 }
 
 func (c *UnsignedIntegerConverter) Convert(out interface{}) error {
@@ -113,7 +115,7 @@ func (c *UnsignedIntegerConverter) Convert(out interface{}) error {
 	case reflect.Uint64:
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	default:
-		return New(c.value).Convert(out)
+		return c.new(c.value, c.field).Convert(out)
 	}
 	return nil
 }
@@ -131,6 +133,7 @@ func (c *UnsignedIntegerConverter) Error() error {
 }
 
 type UnsignedIntegerPtrConverter struct {
+	converter
 	value *uint64
 	err   error
 }

@@ -33,39 +33,41 @@ func (c *ValueConverter) Float() *FloatConverter {
 
 	if err != nil {
 		err = &ConvertError{
-			Field:   "",
+			Field:   c.field,
 			SrcType: reflect.ValueOf(c.value).Type(),
 			DstType: reflect.ValueOf((*float64)(nil)).Type().Elem(),
+			Value:   c.value,
 			Err:     err,
 		}
 	}
-	return &FloatConverter{value: value, err: err}
+	return &FloatConverter{converter: c.converter, value: value, err: err}
 }
 
 type FloatConverter struct {
+	converter
 	value float64
 	err   error
 }
 
 func (c *FloatConverter) Int() *IntegerConverter {
 	if c.err != nil {
-		return &IntegerConverter{value: 0, err: c.err}
+		return &IntegerConverter{converter: c.converter, value: 0, err: c.err}
 	}
-	return New(c.value).Int()
+	return c.new(c.value, c.field).Int()
 }
 
 func (c *FloatConverter) Uint() *UnsignedIntegerConverter {
 	if c.err != nil {
-		return &UnsignedIntegerConverter{value: 0, err: c.err}
+		return &UnsignedIntegerConverter{converter: c.converter, value: 0, err: c.err}
 	}
-	return New(c.value).Uint()
+	return c.new(c.value, c.field).Uint()
 }
 
 func (c *FloatConverter) Ptr() *FloatPtrConverter {
 	if c.err != nil {
-		return &FloatPtrConverter{value: nil, err: c.err}
+		return &FloatPtrConverter{converter: c.converter, value: nil, err: c.err}
 	}
-	return &FloatPtrConverter{value: &c.value, err: c.err}
+	return &FloatPtrConverter{converter: c.converter, value: &c.value, err: c.err}
 }
 
 func (c *FloatConverter) Convert(out interface{}) error {
@@ -91,7 +93,7 @@ func (c *FloatConverter) Convert(out interface{}) error {
 	case reflect.Float64:
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	default:
-		return New(c.value).Convert(out)
+		return c.new(c.value, c.field).Convert(out)
 	}
 	return nil
 }
@@ -109,6 +111,7 @@ func (c *FloatConverter) Error() error {
 }
 
 type FloatPtrConverter struct {
+	converter
 	value *float64
 	err   error
 }

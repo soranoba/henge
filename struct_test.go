@@ -12,18 +12,17 @@ func ExampleValueConverter_Struct() {
 		B *int
 	}
 
-	var s1 = In{
+	var in = In{
 		A: 125,
 		B: "25",
 	}
-	var s2 Out
-	err := New(s1).Struct().Convert(&s2)
-	if err != nil {
-		return
+	var out Out
+	if err := New(in).Struct().Convert(&out); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Printf("A = %#v\n", out.A)
+		fmt.Printf("B = %#v\n", *out.B)
 	}
-
-	fmt.Printf("A = %#v\n", s2.A)
-	fmt.Printf("B = %#v\n", *s2.B)
 
 	// Output:
 	// A = "125"

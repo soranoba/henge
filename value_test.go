@@ -17,7 +17,7 @@ func ExampleNew() {
 
 	// Output:
 	// New("-12").Int().Result() = (-12, <nil>)
-	// New("abc").Error() = "Failed to convert from string to int64: fields=, error=strconv.ParseInt: parsing \"abc\": invalid syntax"
+	// New("abc").Error() = "Failed to convert from string to int64: fields=, value=\"abc\", error=strconv.ParseInt: parsing \"abc\": invalid syntax"
 	// *New("-12").Int().Ptr().Value() = -12
 }
 
