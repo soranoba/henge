@@ -34,7 +34,9 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 		value = map[interface{}]interface{}{}
 		for i := 0; i < inV.NumField(); i++ {
 			field := inV.Field(i)
-			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
+			if !field.CanInterface() {
+				continue
+			} else if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
 				key := inV.Type().Field(i).Name
 				var v interface{}
 				if v, err = c.new(field.Interface(), c.field+"."+key).mapWithDepth(depth + 1).Result(); err != nil {
@@ -42,11 +44,15 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 				}
 				value[key] = v
 			} else {
-				value[inV.Type().Field(i).Name] = inV.Field(i).Interface()
+				value[inV.Type().Field(i).Name] = field.Interface()
 			}
 		}
 	default:
 		err = unsupportedTypeErr
+	}
+
+	if c.isNil {
+		return &MapConverter{converter: c.converter, value: nil, err: err}
 	}
 	return &MapConverter{converter: c.converter, value: value, err: err}
 }

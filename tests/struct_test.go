@@ -2,6 +2,7 @@ package tests
 
 import (
 	"testing"
+	"time"
 
 	"github.com/soranoba/henge"
 	"github.com/stretchr/testify/assert"
@@ -84,4 +85,40 @@ func TestStructConverter_IgnoreField(t *testing.T) {
 	assert.Equal(t, "z", out.Z)
 	assert.Nil(t, out.Embeded1)
 	assert.Nil(t, out.Embeded2)
+}
+
+func TestStructConverter_InternalField(t *testing.T) {
+	var out struct {
+		wall uint64
+	}
+
+	// NOTE: private fields cannot be copied
+	assert.NoError(t, henge.New(time.Now()).Struct().Convert(&out))
+	assert.Equal(t, uint64(0), out.wall)
+}
+
+func TestStructConverter_SameStruct(t *testing.T) {
+	now := time.Now()
+
+	// NOTE: For the same struct, the private fields will also be copied
+	var time time.Time
+	assert.NoError(t, henge.New(now).Struct().Convert(&time))
+	assert.Equal(t, now, time)
+}
+
+func TestStructConverter_SameStructPtr(t *testing.T) {
+	now := time.Now()
+
+	var time time.Time
+	assert.NoError(t, henge.New(&now).Struct().Convert(&time))
+	assert.Equal(t, now, time)
+}
+
+func TestStructConverter_Nil(t *testing.T) {
+	var out *struct{}
+	assert.NoError(t, henge.New((*struct{})(nil)).Struct().Convert(&out))
+	assert.Nil(t, out)
+
+	assert.Error(t, henge.New((*int)(nil)).Struct().Convert(&out))
+	assert.Nil(t, out)
 }

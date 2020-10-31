@@ -2,308 +2,107 @@ package henge
 
 import (
 	"reflect"
-	"strconv"
 )
 
-// ref: MapWithDepth()
-const UnlimitedDepth uint = ^uint(0)
+type Converter interface {
+	InstanceGet(key string) interface{}
+	InstanceSet(key string, value interface{})
+}
 
-// Converts and returns interface to int.
-// If it cannot convert, it returns zero.
-func Int(in interface{}) (out int64) {
-	inV := reflect.Indirect(reflect.ValueOf(in))
-	if !inV.IsValid() {
-		return
+type converter struct {
+	isNil   bool
+	field   string
+	opts    ConverterOpts
+	storage map[string]interface{}
+}
+
+func (c *converter) new(i interface{}, fieldName string) *ValueConverter {
+	newConverter := New(i)
+	newConverter.converter = *c
+	newConverter.converter.field = fieldName
+	return newConverter
+}
+
+func (c *converter) InstanceGet(key string) interface{} {
+	return c.storage[key]
+}
+
+func (c *converter) InstanceSet(key string, value interface{}) {
+	c.storage[key] = value
+}
+
+type ValueConverter struct {
+	converter
+	value interface{}
+	err   error
+}
+
+func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
+	opts := defaultConverterOpts()
+	for _, f := range fs {
+		f(&opts)
 	}
 
-	inT := inV.Type()
-	outT := reflect.TypeOf(out)
-	if inT.ConvertibleTo(outT) {
-		out = inV.Convert(outT).Interface().(int64)
-	} else if inT.Kind() == reflect.String {
-		out, _ = strconv.ParseInt(inV.Interface().(string), 10, 64)
-	} else if inT.Kind() == reflect.Bool {
-		if inV.Interface().(bool) == true {
-			out = 1
+	inV := reflect.ValueOf(i)
+	isNil := false
+	switch inV.Kind() {
+	case reflect.Ptr:
+		if isNil = inV.IsNil(); isNil {
+			i = reflect.New(inV.Type().Elem()).Interface()
+		}
+	case reflect.Slice, reflect.Map:
+		if isNil = inV.IsNil(); isNil {
+			i = reflect.New(inV.Type()).Interface()
 		}
 	}
-	return
+
+	return &ValueConverter{
+		converter: converter{
+			isNil:   isNil,
+			opts:    opts,
+			storage: map[string]interface{}{},
+		},
+		value: i,
+		err:   nil,
+	}
 }
 
-// Converts and returns interface to uint.
-// If it cannot convert, it returns zero.
-func Uint(in interface{}) (out uint64) {
-	inV := reflect.Indirect(reflect.ValueOf(in))
-	if !inV.IsValid() {
-		return
+func (c *ValueConverter) Convert(out interface{}) error {
+	outV := reflect.ValueOf(out)
+	if outV.Kind() != reflect.Ptr {
+		panic("out must be ptr")
 	}
 
-	inT := inV.Type()
-	outT := reflect.TypeOf(out)
-	if inT.ConvertibleTo(outT) {
-		out = inV.Convert(outT).Interface().(uint64)
-	} else if inT.Kind() == reflect.String {
-		out, _ = strconv.ParseUint(inV.Interface().(string), 10, 64)
-	} else if inT.Kind() == reflect.Bool {
-		if inV.Interface().(bool) == true {
-			out = 1
-		}
-	}
-	return
-}
-
-// Converts and returns interface to float.
-// If it cannot convert, it returns zero.
-func Float(in interface{}) (out float64) {
-	inV := reflect.Indirect(reflect.ValueOf(in))
-	if !inV.IsValid() {
-		return
+	for outV.Kind() == reflect.Ptr {
+		outV = outV.Elem()
 	}
 
-	inT := inV.Type()
-	outT := reflect.TypeOf(out)
-	if inT.ConvertibleTo(outT) {
-		out = inV.Convert(outT).Interface().(float64)
-	} else if inT.Kind() == reflect.String {
-		out, _ = strconv.ParseFloat(inV.Interface().(string), 64)
-	} else if inT.Kind() == reflect.Bool {
-		if inV.Interface().(bool) == true {
-			out = 1
-		}
-	}
-	return
-}
-
-// Converts and returns interface to string.
-// If it cannot convert, it returns empty string.
-func String(in interface{}) (out string) {
-	inV := reflect.Indirect(reflect.ValueOf(in))
-	if !inV.IsValid() {
-		return
-	}
-
-	inT := inV.Type()
-	outT := reflect.TypeOf(out)
-
-	if inT.Kind() == reflect.Int ||
-		inT.Kind() == reflect.Int8 ||
-		inT.Kind() == reflect.Int16 ||
-		inT.Kind() == reflect.Int32 ||
-		inT.Kind() == reflect.Int64 {
-		var i int64
-		i = inV.Convert(reflect.TypeOf(i)).Interface().(int64)
-		out = strconv.FormatInt(i, 10)
-	} else if inT.Kind() == reflect.Uint ||
-		inT.Kind() == reflect.Uint8 ||
-		inT.Kind() == reflect.Uint16 ||
-		inT.Kind() == reflect.Uint32 ||
-		inT.Kind() == reflect.Uint64 {
-		var ui uint64
-		ui = inV.Convert(reflect.TypeOf(ui)).Interface().(uint64)
-		out = strconv.FormatUint(ui, 10)
-	} else if inT.Kind() == reflect.Float32 ||
-		inT.Kind() == reflect.Float64 {
-		var f float64
-		f = inV.Convert(reflect.TypeOf(f)).Interface().(float64)
-		out = strconv.FormatFloat(f, 'f', -1, 64)
-	} else if inT.Kind() == reflect.Bool {
-		if inV.Interface().(bool) == true {
-			out = "true"
-		} else {
-			out = "false"
-		}
-	} else if inT.ConvertibleTo(outT) {
-		out = inV.Convert(outT).Interface().(string)
-	}
-	return
-}
-
-// Converts and returns interface to a pointer of int.
-//
-// It only returns nil, if nil inputted.
-// Otherwise, it returns a pointer of result conversion to int.
-func IntPtr(in interface{}) *int64 {
-	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
-		return nil
-	}
-
-	i := Int(in)
-	return &i
-}
-
-// Converts and returns interface to a pointer of uint.
-//
-// It only returns nil, if nil inputted.
-// Otherwise, it returns a pointer of result conversion to uint.
-func UintPtr(in interface{}) *uint64 {
-	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
-		return nil
-	}
-
-	ui := Uint(in)
-	return &ui
-}
-
-// Converts and returns interface to a pointer of float.
-//
-// It only returns nil, if nil inputted.
-// Otherwise, it returns a pointer of result conversion to float.
-func FloatPtr(in interface{}) *float64 {
-	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
-		return nil
-	}
-
-	f := Float(in)
-	return &f
-}
-
-// Converts and returns interface to a pointer of string.
-//
-// It only returns nil, if nil inputted.
-// Otherwise, it returns a pointer of result conversion to string.
-func StringPtr(in interface{}) *string {
-	if v := reflect.Indirect(reflect.ValueOf(in)); !v.IsValid() {
-		return nil
-	}
-
-	s := String(in)
-	return &s
-}
-
-// Converts and returns array of interface to array of int64.
-func IntSlice(in interface{}) []int64 {
-	val := reflect.ValueOf(in)
-	switch val.Kind() {
+	switch outV.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return c.Int().Convert(out)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return c.Uint().Convert(out)
+	case reflect.Float32, reflect.Float64:
+		return c.Float().Convert(out)
+	case reflect.String:
+		return c.String().Convert(out)
 	case reflect.Array, reflect.Slice:
-		break
+		return c.Slice().Convert(out)
+	case reflect.Struct:
+		return c.Struct().Convert(out)
 	default:
-		panic("IntSlice only accepts slice or array")
+		return unsupportedTypeErr
 	}
-
-	if val.IsNil() {
-		return nil
-	}
-
-	out := make([]int64, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		v := val.Index(i)
-		if v.CanInterface() {
-			out[i] = Int(v.Interface())
-		} else {
-			out[i] = 0
-		}
-	}
-	return out
 }
 
-// Converts and returns slice of interface to slice of uint64.
-func UintSlice(in interface{}) []uint64 {
-	val := reflect.ValueOf(in)
-	switch val.Kind() {
-	case reflect.Array, reflect.Slice:
-		break
-	default:
-		panic("UintSlice only accepts slice or array")
-	}
-
-	if val.IsNil() {
-		return nil
-	}
-
-	out := make([]uint64, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		v := val.Index(i)
-		if v.CanInterface() {
-			out[i] = Uint(v.Interface())
-		} else {
-			out[i] = 0
-		}
-	}
-	return out
+func (c *ValueConverter) Result() (interface{}, error) {
+	return c.value, c.err
 }
 
-// Converts and returns slice of interface to slice of float64.
-func FloatSlice(in interface{}) []float64 {
-	val := reflect.ValueOf(in)
-	switch val.Kind() {
-	case reflect.Array, reflect.Slice:
-		break
-	default:
-		panic("UintSlice only accepts slice or array")
-	}
-
-	if val.IsNil() {
-		return nil
-	}
-
-	out := make([]float64, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		v := val.Index(i)
-		if v.CanInterface() {
-			out[i] = Float(v.Interface())
-		} else {
-			out[i] = 0
-		}
-	}
-	return out
+func (c *ValueConverter) Value() interface{} {
+	return c.value
 }
 
-// Converts and returns slice of interface to slice of string.
-func StringSlice(in interface{}) []string {
-	val := reflect.ValueOf(in)
-	switch val.Kind() {
-	case reflect.Array, reflect.Slice:
-		break
-	default:
-		panic("UintSlice only accepts slice or array")
-	}
-
-	if val.IsNil() {
-		return nil
-	}
-
-	out := make([]string, val.Len())
-	for i := 0; i < val.Len(); i++ {
-		v := val.Index(i)
-		if v.CanInterface() {
-			out[i] = String(v.Interface())
-		} else {
-			out[i] = ""
-		}
-	}
-	return out
-}
-
-// Convert a struct to a map.
-// It will not be expanded nested structs.
-func Map(in interface{}) (out map[string]interface{}) {
-	return MapWithDepth(in, 0)
-}
-
-// MapWithDepth() is the same as Map().
-// It can specify how much to expand the nested struct.
-// When depth is zero, it returns empty map.
-func MapWithDepth(in interface{}, depth uint) (out map[string]interface{}) {
-	inV := reflect.Indirect(reflect.ValueOf(in))
-	if !inV.IsValid() {
-		return make(map[string]interface{}, 0)
-	}
-
-	inT := inV.Type()
-	if inT.Kind() != reflect.Struct {
-		panic("henge.Map can only support conversion from structs")
-	}
-
-	out = make(map[string]interface{}, inT.NumField())
-	for i := 0; i < inT.NumField(); i++ {
-		field := inT.Field(i)
-		v := reflect.Indirect(inV.FieldByName(field.Name))
-
-		if v.Kind() == reflect.Struct && depth > 0 {
-			out[field.Name] = MapWithDepth(v.Interface(), depth-1)
-		} else if v.IsValid() && v.CanInterface() {
-			out[field.Name] = v.Interface()
-		}
-	}
-	return
+func (c *ValueConverter) Error() error {
+	return c.err
 }

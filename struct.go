@@ -35,6 +35,9 @@ func (c *StructConverter) Convert(out interface{}) error {
 	if c.err != nil {
 		return c.err
 	}
+	if c.isNil {
+		return nil
+	}
 
 	for outV.Kind() == reflect.Ptr {
 		outV = outV.Elem()
@@ -43,8 +46,14 @@ func (c *StructConverter) Convert(out interface{}) error {
 	switch outV.Kind() {
 	case reflect.Struct:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
-		inFields := getStructFields(inV.Type())
 
+		// NOTE: Types that are simply converted (it also copies private fields)
+		if inV.Type().ConvertibleTo(outV.Type()) {
+			outV.Set(inV.Convert(outV.Type()))
+			return nil
+		}
+
+		inFields := getStructFields(inV.Type())
 		for _, outField := range getStructFields(outV.Type()) {
 			if outField.isIgnore() {
 				continue
@@ -68,6 +77,9 @@ func (c *StructConverter) Convert(out interface{}) error {
 				for _, index := range outField.index {
 					v := anchor.Field(index)
 					if v.Kind() == reflect.Ptr {
+						if !v.CanSet() {
+							break
+						}
 						if v.IsNil() {
 							v.Set(reflect.New(v.Type().Elem()))
 						}
@@ -77,6 +89,12 @@ func (c *StructConverter) Convert(out interface{}) error {
 
 				v := inV.FieldByIndex(inField.index)
 				target := outV.FieldByIndex(outField.index)
+
+				// NOTE: private field
+				if !v.CanInterface() {
+					continue
+				}
+
 				if target.Kind() != reflect.Ptr {
 					target = target.Addr()
 				}

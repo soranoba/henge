@@ -18,6 +18,10 @@ func (c *ValueConverter) Slice() *SliceConverter {
 	default:
 		err = unsupportedTypeErr
 	}
+
+	if c.isNil {
+		return &SliceConverter{converter: c.converter, value: nil, err: err}
+	}
 	return &SliceConverter{converter: c.converter, value: value, err: err}
 }
 
