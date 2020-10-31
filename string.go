@@ -5,19 +5,11 @@ import (
 	"strconv"
 )
 
-func (c *ValueConverter) String(opts ...func(*StringConverterOpt) *StringConverterOpt) *StringConverter {
+func (c *ValueConverter) String() *StringConverter {
 	var (
 		value string
 		err   error
 	)
-
-	opt := &StringConverterOpt{
-		fmt:  'f',
-		prec: -1,
-	}
-	for _, f := range opts {
-		opt = f(opt)
-	}
 
 	inV := reflect.Indirect(reflect.ValueOf(c.value))
 	if inV.IsValid() {
@@ -35,7 +27,7 @@ func (c *ValueConverter) String(opts ...func(*StringConverterOpt) *StringConvert
 		case reflect.Float32, reflect.Float64:
 			var f float64
 			f = inV.Convert(reflect.TypeOf(f)).Interface().(float64)
-			value = strconv.FormatFloat(f, opt.fmt, opt.prec, 64)
+			value = strconv.FormatFloat(f, c.opts.stringOpts.fmt, c.opts.stringOpts.prec, 64)
 		case reflect.Bool:
 			if inV.Interface().(bool) == true {
 				value = "true"
@@ -62,19 +54,6 @@ func (c *ValueConverter) String(opts ...func(*StringConverterOpt) *StringConvert
 		}
 	}
 	return &StringConverter{value: value, err: err}
-}
-
-type StringConverterOpt struct {
-	fmt  byte
-	prec int
-}
-
-func WithFloatFormat(fmt byte, prec int) func(*StringConverterOpt) *StringConverterOpt {
-	return func(opt *StringConverterOpt) *StringConverterOpt {
-		opt.fmt = fmt
-		opt.prec = prec
-		return opt
-	}
 }
 
 type StringConverter struct {

@@ -19,7 +19,7 @@ func ExampleValueConverter_String() {
 
 	fmt.Println("float64 to string")
 	fmt.Printf("%v -> %#v\n", math.MaxFloat64, New(math.MaxFloat64).String().Value())
-	fmt.Printf("%v -> %#v\n", math.MaxFloat64, New(math.MaxFloat64).String(WithFloatFormat('e', 2)).Value())
+	fmt.Printf("%v -> %#v\n", math.MaxFloat64, New(math.MaxFloat64, WithFloatFormat('e', 2)).String().Value())
 	fmt.Printf("%v -> %#v\n", math.SmallestNonzeroFloat64, New(math.SmallestNonzeroFloat64).String().Value())
 	fmt.Printf("%v -> %#v\n", -1*math.MaxFloat64, New(-1*math.MaxFloat64).String().Value())
 	fmt.Println()

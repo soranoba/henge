@@ -2,15 +2,11 @@ package henge
 
 import "reflect"
 
-func (c *ValueConverter) Map(opts ...func(*MapConverterOpt) *MapConverterOpt) *MapConverter {
-	opt := &MapConverterOpt{maxDepth: ^uint(0)}
-	for _, f := range opts {
-		opt = f(opt)
-	}
-	return c.mapWithDepth(0, opt)
+func (c *ValueConverter) Map() *MapConverter {
+	return c.mapWithDepth(0)
 }
 
-func (c *ValueConverter) mapWithDepth(depth uint, opt *MapConverterOpt) *MapConverter {
+func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 	var (
 		value map[interface{}]interface{}
 		err   error
@@ -23,9 +19,9 @@ func (c *ValueConverter) mapWithDepth(depth uint, opt *MapConverterOpt) *MapConv
 		iter := inV.MapRange()
 		for iter.Next() {
 			iterV := iter.Value()
-			if reflect.Indirect(iterV).Kind() == reflect.Struct && depth < opt.maxDepth {
+			if reflect.Indirect(iterV).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
 				var v interface{}
-				if v, err = New(iterV.Interface()).mapWithDepth(depth+1, opt).Result(); err != nil {
+				if v, err = New(iterV.Interface(), withOpts(c.opts)).mapWithDepth(depth + 1).Result(); err != nil {
 					break
 				}
 				value[iter.Key().Interface()] = v
@@ -37,9 +33,9 @@ func (c *ValueConverter) mapWithDepth(depth uint, opt *MapConverterOpt) *MapConv
 		value = map[interface{}]interface{}{}
 		for i := 0; i < inV.NumField(); i++ {
 			field := inV.Field(i)
-			if reflect.Indirect(field).Kind() == reflect.Struct && depth < opt.maxDepth {
+			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
 				var v interface{}
-				if v, err = New(field.Interface()).mapWithDepth(depth+1, opt).Result(); err != nil {
+				if v, err = New(field.Interface(), withOpts(c.opts)).mapWithDepth(depth + 1).Result(); err != nil {
 					break
 				}
 				value[inV.Type().Field(i).Name] = v
@@ -51,20 +47,6 @@ func (c *ValueConverter) mapWithDepth(depth uint, opt *MapConverterOpt) *MapConv
 		err = unsupportedTypeErr
 	}
 	return &MapConverter{value: value, err: err}
-}
-
-type MapConverterOpt struct {
-	maxDepth uint
-}
-
-func WithMaxDepth(maxDepth uint) func(*MapConverterOpt) *MapConverterOpt {
-	if maxDepth == 0 {
-		panic("WithMaxDepth does not support zero")
-	}
-	return func(opt *MapConverterOpt) *MapConverterOpt {
-		opt.maxDepth = maxDepth
-		return opt
-	}
 }
 
 type MapConverter struct {
