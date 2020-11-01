@@ -1,12 +1,18 @@
 package tests
 
 import (
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/soranoba/henge"
 	"github.com/stretchr/testify/assert"
 )
+
+type User struct {
+	Name string
+	Age  int
+}
 
 func TestStructConverter_EmbededField(t *testing.T) {
 	type In struct {
@@ -121,4 +127,55 @@ func TestStructConverter_Nil(t *testing.T) {
 
 	assert.Error(t, henge.New((*int)(nil)).Struct().Convert(&out))
 	assert.Nil(t, out)
+}
+
+type BeforeCallbackT struct {
+	Name string
+	Age  int
+}
+
+func (t *BeforeCallbackT) BeforeConvert(src interface{}, converter henge.Converter) error {
+	if _, ok := src.(User); ok {
+		return nil
+	}
+	return errors.New("failed")
+}
+
+type AfterCallbackT struct {
+	Name string
+	Age  int
+}
+
+func (t *AfterCallbackT) AfterConvert(src interface{}, converter henge.Converter) error {
+	if u, ok := src.(User); ok {
+		diff, _ := converter.InstanceGet("diff").(int)
+		t.Age = u.Age + diff
+		return nil
+	}
+	return errors.New("failed")
+}
+
+func TestStructConverter_Callbacks(t *testing.T) {
+	user := User{
+		Name: "Alice",
+		Age:  25,
+	}
+
+	out1 := BeforeCallbackT{}
+	assert.NoError(t, henge.New(user).Struct().Convert(&out1))
+	assert.Equal(t, user.Name, out1.Name)
+	assert.Equal(t, user.Age, out1.Age)
+
+	out1 = BeforeCallbackT{}
+	assert.Error(t, henge.New(struct{ Name string }{"Bob"}).Convert(&out1))
+
+	out2 := AfterCallbackT{}
+	conv := henge.New(user)
+	conv.InstanceSet("diff", 23)
+	assert.NoError(t, conv.Struct().Convert(&out2))
+	assert.Equal(t, user.Name, out2.Name)
+	assert.Equal(t, 48, out2.Age)
+
+	out2 = AfterCallbackT{}
+	assert.Error(t, henge.New(struct{ Name string }{"Carol"}).Convert(&out2))
 }

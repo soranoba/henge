@@ -27,6 +27,10 @@ type StructConverter struct {
 }
 
 func (c *StructConverter) Convert(out interface{}) error {
+	var (
+		err error
+	)
+
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
 		panic("out must be ptr")
@@ -43,6 +47,12 @@ func (c *StructConverter) Convert(out interface{}) error {
 		outV = outV.Elem()
 	}
 
+	if beforeCallback, ok := outV.Addr().Interface().(BeforeCallback); ok {
+		if err = beforeCallback.BeforeConvert(c.value, &c.converter); err != nil {
+			goto failed
+		}
+	}
+
 	switch outV.Kind() {
 	case reflect.Struct:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
@@ -50,7 +60,7 @@ func (c *StructConverter) Convert(out interface{}) error {
 		// NOTE: Types that are simply converted (it also copies private fields)
 		if inV.Type().ConvertibleTo(outV.Type()) {
 			outV.Set(inV.Convert(outV.Type()))
-			return nil
+			break
 		}
 
 		inFields := getStructFields(inV.Type())
@@ -98,13 +108,19 @@ func (c *StructConverter) Convert(out interface{}) error {
 				if target.Kind() != reflect.Ptr {
 					target = target.Addr()
 				}
-				if err := c.new(v.Interface(), c.field+"."+outField.name).Convert(target.Interface()); err != nil {
-					return err
+				if err = c.new(v.Interface(), c.field+"."+outField.name).Convert(target.Interface()); err != nil {
+					goto failed
 				}
 			}
 		}
 	default:
-		return c.new(c.value, c.field).Convert(out)
+		err = c.new(c.value, c.field).Convert(out)
 	}
-	return nil
+
+	if afterCallback, ok := outV.Addr().Interface().(AfterCallback); ok {
+		err = afterCallback.AfterConvert(c.value, &c.converter)
+	}
+
+failed:
+	return err
 }
