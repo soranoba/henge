@@ -1,12 +1,12 @@
 package henge
 
 import (
-	"errors"
 	"math"
 	"reflect"
 	"strconv"
 )
 
+// Int converts the input to int type.
 func (c *ValueConverter) Int() *IntegerConverter {
 	var (
 		value int64
@@ -25,7 +25,7 @@ func (c *ValueConverter) Int() *IntegerConverter {
 			u = inV.Convert(reflect.ValueOf(u).Type()).Interface().(uint64)
 			i := inV.Convert(outT).Interface().(int64)
 			if i < 0 && u > 0 {
-				err = errors.New("overflows")
+				err = ErrOverflow
 			} else {
 				value = i
 			}
@@ -34,7 +34,7 @@ func (c *ValueConverter) Int() *IntegerConverter {
 			f = inV.Convert(reflect.ValueOf(f).Type()).Interface().(float64)
 			f = math.Floor(f)
 			if f > math.MaxInt64 || f < math.MinInt64 || ((f > 0) != (int64(f) > 0)) {
-				err = errors.New("overflows")
+				err = ErrOverflow
 			} else {
 				value = int64(f)
 			}
@@ -45,10 +45,10 @@ func (c *ValueConverter) Int() *IntegerConverter {
 		case reflect.String:
 			value, err = strconv.ParseInt(inV.Interface().(string), 10, 64)
 		default:
-			err = unsupportedTypeErr
+			err = ErrUnsupportedType
 		}
 	} else {
-		err = invalidValueErr
+		err = ErrInvalidValue
 	}
 
 	if err != nil {
@@ -63,12 +63,14 @@ func (c *ValueConverter) Int() *IntegerConverter {
 	return &IntegerConverter{converter: c.converter, value: value, err: err}
 }
 
+// IntegerConverter is a converter that converts an integer type to another type.
 type IntegerConverter struct {
 	converter
 	value int64
 	err   error
 }
 
+// Ptr converts the input to ptr type.
 func (c *IntegerConverter) Ptr() *IntegerPtrConverter {
 	if c.err != nil || c.isNil {
 		return &IntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
@@ -76,6 +78,8 @@ func (c *IntegerConverter) Ptr() *IntegerPtrConverter {
 	return &IntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}
 }
 
+// Convert converts the input to the out type and assigns it.
+// If the conversion fails, the method returns an error.
 func (c *IntegerConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
@@ -93,22 +97,22 @@ func (c *IntegerConverter) Convert(out interface{}) error {
 	switch outV.Kind() {
 	case reflect.Int:
 		if int64(int(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int8:
 		if int64(int8(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int16:
 		if int64(int16(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int32:
 		if int64(int32(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int64:
@@ -119,32 +123,39 @@ func (c *IntegerConverter) Convert(out interface{}) error {
 	return nil
 }
 
+// Result returns the conversion result and error.
 func (c *IntegerConverter) Result() (int64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *IntegerConverter) Value() int64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *IntegerConverter) Error() error {
 	return c.err
 }
 
+// IntegerPtrConverter is a converter that converts a pointer of integer type to another type.
 type IntegerPtrConverter struct {
 	converter
 	value *int64
 	err   error
 }
 
+// Result returns the conversion result and error.
 func (c *IntegerPtrConverter) Result() (*int64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *IntegerPtrConverter) Value() *int64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *IntegerPtrConverter) Error() error {
 	return c.err
 }

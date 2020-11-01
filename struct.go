@@ -4,6 +4,7 @@ import (
 	"reflect"
 )
 
+// Struct converts the input to struct type.
 func (c *ValueConverter) Struct() *StructConverter {
 	var (
 		value interface{}
@@ -15,17 +16,20 @@ func (c *ValueConverter) Struct() *StructConverter {
 	case reflect.Struct:
 		value = c.value
 	default:
-		err = unsupportedTypeErr
+		err = ErrUnsupportedType
 	}
 	return &StructConverter{converter: c.converter, value: value, err: err}
 }
 
+// StructConverter is a converter that converts a struct type to another type.
 type StructConverter struct {
 	converter
 	value interface{}
 	err   error
 }
 
+// Convert converts the input to the out type and assigns it.
+// If the conversion fails, the method returns an error.
 func (c *StructConverter) Convert(out interface{}) error {
 	var (
 		err error

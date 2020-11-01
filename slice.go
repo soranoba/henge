@@ -2,6 +2,7 @@ package henge
 
 import "reflect"
 
+// Slice converts the input to slice type.
 func (c *ValueConverter) Slice() *SliceConverter {
 	var (
 		value []interface{}
@@ -16,7 +17,7 @@ func (c *ValueConverter) Slice() *SliceConverter {
 			value[i] = inV.Index(i).Interface()
 		}
 	default:
-		err = unsupportedTypeErr
+		err = ErrUnsupportedType
 	}
 
 	if c.isNil {
@@ -25,12 +26,15 @@ func (c *ValueConverter) Slice() *SliceConverter {
 	return &SliceConverter{converter: c.converter, value: value, err: err}
 }
 
+// SliceConverter is a converter that converts a slice type to another type.
 type SliceConverter struct {
 	converter
 	value []interface{}
 	err   error
 }
 
+// Convert converts the input to the out type and assigns it.
+// If the conversion fails, the method returns an error.
 func (c *SliceConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
@@ -45,7 +49,7 @@ func (c *SliceConverter) Convert(out interface{}) error {
 	case reflect.Array:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
 		if inV.Kind() != reflect.Array && inV.Kind() != reflect.Slice {
-			return unsupportedTypeErr
+			return ErrUnsupportedType
 		}
 
 		v := reflect.New(reflect.ArrayOf(outV.Len(), outV.Type().Elem())).Elem()
@@ -61,7 +65,7 @@ func (c *SliceConverter) Convert(out interface{}) error {
 	case reflect.Slice:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
 		if inV.Kind() != reflect.Array && inV.Kind() != reflect.Slice {
-			return unsupportedTypeErr
+			return ErrUnsupportedType
 		}
 
 		v := reflect.MakeSlice(reflect.SliceOf(outV.Type().Elem()), inV.Len(), inV.Len())
@@ -75,11 +79,12 @@ func (c *SliceConverter) Convert(out interface{}) error {
 		}
 		outV.Set(v)
 	default:
-		return unsupportedTypeErr
+		return ErrUnsupportedType
 	}
 	return nil
 }
 
+// IntSlice converts the input to slice of int type.
 func (c *SliceConverter) IntSlice() *IntegerSliceConverter {
 	var (
 		value []int64 = make([]int64, len(c.value))
@@ -96,6 +101,7 @@ func (c *SliceConverter) IntSlice() *IntegerSliceConverter {
 	return &IntegerSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
+// UintSlice converts the input to slice of uint type.
 func (c *SliceConverter) UintSlice() *UnsignedIntegerSliceConverter {
 	var (
 		value []uint64 = make([]uint64, len(c.value))
@@ -112,6 +118,7 @@ func (c *SliceConverter) UintSlice() *UnsignedIntegerSliceConverter {
 	return &UnsignedIntegerSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
+// FloatSlice converts the input to slice of float type.
 func (c *SliceConverter) FloatSlice() *FloatSliceConverter {
 	var (
 		value []float64 = make([]float64, len(c.value))
@@ -128,6 +135,7 @@ func (c *SliceConverter) FloatSlice() *FloatSliceConverter {
 	return &FloatSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
+// StringSlice converts the input to slice of string type.
 func (c *SliceConverter) StringSlice() *StringSliceConverter {
 	var (
 		value []string = make([]string, len(c.value))
@@ -144,86 +152,105 @@ func (c *SliceConverter) StringSlice() *StringSliceConverter {
 	return &StringSliceConverter{converter: c.converter, value: value, err: nil}
 }
 
+// Result returns the conversion result and error
 func (c *SliceConverter) Result() ([]interface{}, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *SliceConverter) Value() []interface{} {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *SliceConverter) Error() error {
 	return c.err
 }
 
+// IntegerSliceConverter is a converter that converts a slice of integer type to another type.
 type IntegerSliceConverter struct {
 	converter
 	value []int64
 	err   error
 }
 
+// Result returns the conversion result and error
 func (c *IntegerSliceConverter) Result() ([]int64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *IntegerSliceConverter) Value() []int64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *IntegerSliceConverter) Error() error {
 	return c.err
 }
 
+// UnsignedIntegerSliceConverter is a converter that converts a slice of uint type to another type.
 type UnsignedIntegerSliceConverter struct {
 	converter
 	value []uint64
 	err   error
 }
 
+// Result returns the conversion result and error.
 func (c *UnsignedIntegerSliceConverter) Result() ([]uint64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *UnsignedIntegerSliceConverter) Value() []uint64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *UnsignedIntegerSliceConverter) Error() error {
 	return c.err
 }
 
+// FloatSliceConverter is a converter that converts a slice of float type to another type.
 type FloatSliceConverter struct {
 	converter
 	value []float64
 	err   error
 }
 
+// Result returns the conversion result and error.
 func (c *FloatSliceConverter) Result() ([]float64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *FloatSliceConverter) Value() []float64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *FloatSliceConverter) Error() error {
 	return c.err
 }
 
+// StringSliceConverter is a converter that converts a slice of string type to another type.
 type StringSliceConverter struct {
 	converter
 	value []string
 	err   error
 }
 
+// Result returns the conversion result and error.
 func (c *StringSliceConverter) Result() ([]string, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *StringSliceConverter) Value() []string {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *StringSliceConverter) Error() error {
 	return c.err
 }

@@ -1,12 +1,12 @@
 package henge
 
 import (
-	"errors"
 	"math"
 	"reflect"
 	"strconv"
 )
 
+// Uint converts the input to uint type.
 func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 	var (
 		value uint64
@@ -22,7 +22,7 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 			var i int64
 			i = inV.Convert(reflect.ValueOf(i).Type()).Interface().(int64)
 			if i < 0 {
-				err = errors.New("negative number")
+				err = ErrNegativeNumber
 			} else {
 				value = uint64(i)
 			}
@@ -33,9 +33,9 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 			f = inV.Convert(reflect.ValueOf(f).Type()).Interface().(float64)
 			f = math.Floor(f)
 			if f < 0 {
-				err = errors.New("negative number")
+				err = ErrNegativeNumber
 			} else if f > math.MaxUint64 || ((f > 0) != (int64(f) > 0)) {
-				err = errors.New("overflows")
+				err = ErrOverflow
 			} else {
 				value = uint64(f)
 			}
@@ -46,10 +46,10 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 		case reflect.String:
 			value, err = strconv.ParseUint(inV.Interface().(string), 10, 64)
 		default:
-			err = unsupportedTypeErr
+			err = ErrUnsupportedType
 		}
 	} else {
-		err = invalidValueErr
+		err = ErrInvalidValue
 	}
 
 	if err != nil {
@@ -64,12 +64,14 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 	return &UnsignedIntegerConverter{converter: c.converter, value: value, err: err}
 }
 
+// UnsignedIntegerConverter is a converter that converts an unsigned integer type to another type.
 type UnsignedIntegerConverter struct {
 	converter
 	value uint64
 	err   error
 }
 
+// Ptr converts the input to ptr type.
 func (c *UnsignedIntegerConverter) Ptr() *UnsignedIntegerPtrConverter {
 	if c.err != nil || c.isNil {
 		return &UnsignedIntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
@@ -77,6 +79,8 @@ func (c *UnsignedIntegerConverter) Ptr() *UnsignedIntegerPtrConverter {
 	return &UnsignedIntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}
 }
 
+// Convert converts the input to the out type and assigns it.
+// If the conversion fails, the method returns an error.
 func (c *UnsignedIntegerConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
@@ -94,22 +98,22 @@ func (c *UnsignedIntegerConverter) Convert(out interface{}) error {
 	switch outV.Kind() {
 	case reflect.Uint:
 		if uint64(uint(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint8:
 		if uint64(uint8(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint16:
 		if uint64(uint16(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint32:
 		if uint64(uint32(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint64:
@@ -120,32 +124,39 @@ func (c *UnsignedIntegerConverter) Convert(out interface{}) error {
 	return nil
 }
 
+// Result returns the conversion result and error.
 func (c *UnsignedIntegerConverter) Result() (uint64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *UnsignedIntegerConverter) Value() uint64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *UnsignedIntegerConverter) Error() error {
 	return c.err
 }
 
+// UnsignedIntegerPtrConverter is a converter that converts a pointer of uint type to another type.
 type UnsignedIntegerPtrConverter struct {
 	converter
 	value *uint64
 	err   error
 }
 
+// Result returns the conversion result and error.
 func (c *UnsignedIntegerPtrConverter) Result() (*uint64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *UnsignedIntegerPtrConverter) Value() *uint64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *UnsignedIntegerPtrConverter) Error() error {
 	return c.err
 }

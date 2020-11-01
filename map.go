@@ -2,6 +2,7 @@ package henge
 
 import "reflect"
 
+// Map converts the input to map type.
 func (c *ValueConverter) Map() *MapConverter {
 	return c.mapWithDepth(0)
 }
@@ -48,7 +49,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 			}
 		}
 	default:
-		err = unsupportedTypeErr
+		err = ErrUnsupportedType
 	}
 
 	if c.isNil {
@@ -57,12 +58,15 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 	return &MapConverter{converter: c.converter, value: value, err: err}
 }
 
+// MapConverter is a converter that converts a map type to another type.
 type MapConverter struct {
 	converter
 	value map[interface{}]interface{}
 	err   error
 }
 
+// Convert converts the input to the out type and assigns it.
+// If the conversion fails, the method returns an error.
 func (c *MapConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
@@ -128,19 +132,22 @@ func (c *MapConverter) Convert(out interface{}) error {
 			}
 		}
 	default:
-		return unsupportedTypeErr
+		return ErrUnsupportedType
 	}
 	return nil
 }
 
+// Result returns the conversion result and error.
 func (c *MapConverter) Result() (map[interface{}]interface{}, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *MapConverter) Value() map[interface{}]interface{} {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *MapConverter) Error() error {
 	return c.err
 }

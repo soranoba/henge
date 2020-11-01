@@ -1,11 +1,11 @@
 package henge
 
 import (
-	"errors"
 	"reflect"
 	"strconv"
 )
 
+// Float converts the input to float type.
 func (c *ValueConverter) Float() *FloatConverter {
 	var (
 		value float64
@@ -25,10 +25,10 @@ func (c *ValueConverter) Float() *FloatConverter {
 				value = 1
 			}
 		} else {
-			err = unsupportedTypeErr
+			err = ErrUnsupportedType
 		}
 	} else {
-		err = invalidValueErr
+		err = ErrInvalidValue
 	}
 
 	if err != nil {
@@ -43,12 +43,14 @@ func (c *ValueConverter) Float() *FloatConverter {
 	return &FloatConverter{converter: c.converter, value: value, err: err}
 }
 
+// FloatConverter is a converter that converts a float type to another type.
 type FloatConverter struct {
 	converter
 	value float64
 	err   error
 }
 
+// Int converts the input to int type.
 func (c *FloatConverter) Int() *IntegerConverter {
 	if c.err != nil {
 		return &IntegerConverter{converter: c.converter, value: 0, err: c.err}
@@ -56,6 +58,7 @@ func (c *FloatConverter) Int() *IntegerConverter {
 	return c.new(c.value, c.field).Int()
 }
 
+// Uint converts the input to uint type.
 func (c *FloatConverter) Uint() *UnsignedIntegerConverter {
 	if c.err != nil {
 		return &UnsignedIntegerConverter{converter: c.converter, value: 0, err: c.err}
@@ -63,6 +66,7 @@ func (c *FloatConverter) Uint() *UnsignedIntegerConverter {
 	return c.new(c.value, c.field).Uint()
 }
 
+// Ptr converts the input to ptr type.
 func (c *FloatConverter) Ptr() *FloatPtrConverter {
 	if c.err != nil || c.isNil {
 		return &FloatPtrConverter{converter: c.converter, value: nil, err: c.err}
@@ -70,6 +74,8 @@ func (c *FloatConverter) Ptr() *FloatPtrConverter {
 	return &FloatPtrConverter{converter: c.converter, value: &c.value, err: c.err}
 }
 
+// Convert converts the input to the out type and assigns it.
+// If the conversion fails, the method returns an error.
 func (c *FloatConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
@@ -87,7 +93,7 @@ func (c *FloatConverter) Convert(out interface{}) error {
 	switch outV.Kind() {
 	case reflect.Float32:
 		if float64(float32(c.value)) != c.value {
-			return errors.New("overflows")
+			return ErrOverflow
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Float64:
@@ -98,32 +104,39 @@ func (c *FloatConverter) Convert(out interface{}) error {
 	return nil
 }
 
+// Result returns the conversion result and error.
 func (c *FloatConverter) Result() (float64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *FloatConverter) Value() float64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails
 func (c *FloatConverter) Error() error {
 	return c.err
 }
 
+// FloatPtrConverter is a converter that converts a pointer of float type to another type.
 type FloatPtrConverter struct {
 	converter
 	value *float64
 	err   error
 }
 
+// Result returns the conversion result and error.
 func (c *FloatPtrConverter) Result() (*float64, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *FloatPtrConverter) Value() *float64 {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *FloatPtrConverter) Error() error {
 	return c.err
 }

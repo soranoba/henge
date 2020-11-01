@@ -4,6 +4,7 @@ import (
 	"reflect"
 )
 
+// Converter is an interface that has common functions of all Converters.
 type Converter interface {
 	InstanceGet(key string) interface{}
 	InstanceSet(key string, value interface{})
@@ -23,20 +24,24 @@ func (c *converter) new(i interface{}, fieldName string) *ValueConverter {
 	return newConverter
 }
 
+// InstanceGet returns the value saved using InstanceSet.
 func (c *converter) InstanceGet(key string) interface{} {
 	return c.storage[key]
 }
 
+// InstanceSet saves the value by specifying the key.
 func (c *converter) InstanceSet(key string, value interface{}) {
 	c.storage[key] = value
 }
 
+// ValueConverter is a converter that converts an interface type to another type.
 type ValueConverter struct {
 	converter
 	value interface{}
 	err   error
 }
 
+// New returns a new ValueConverter
 func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 	opts := defaultConverterOpts()
 	for _, f := range fs {
@@ -67,6 +72,8 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 	}
 }
 
+// Convert converts the input to the out type and assigns it.
+// If the conversion fails, the method returns an error.
 func (c *ValueConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
@@ -91,18 +98,21 @@ func (c *ValueConverter) Convert(out interface{}) error {
 	case reflect.Struct:
 		return c.Struct().Convert(out)
 	default:
-		return unsupportedTypeErr
+		return ErrUnsupportedType
 	}
 }
 
+// Result returns the conversion result and error.
 func (c *ValueConverter) Result() (interface{}, error) {
 	return c.value, c.err
 }
 
+// Value returns the conversion result.
 func (c *ValueConverter) Value() interface{} {
 	return c.value
 }
 
+// Error returns an error if the conversion fails.
 func (c *ValueConverter) Error() error {
 	return c.err
 }

@@ -12,7 +12,7 @@ type structTag struct {
 	ignore bool
 }
 
-// newStructTag is create a `*structTag` from `reflect.StructField`
+// newStructTag is create a `structTag` from `reflect.StructField`
 func newStructTag(f reflect.StructField) structTag {
 	value := f.Tag.Get(structTagKey)
 
