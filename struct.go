@@ -72,6 +72,7 @@ func (c *StructConverter) Convert(out interface{}) error {
 		}
 
 		inFields := getStructFields(inV.Type())
+	Loop:
 		for _, outField := range getStructFields(outV.Type()) {
 			if outField.isIgnore() {
 				continue
@@ -90,33 +91,40 @@ func (c *StructConverter) Convert(out interface{}) error {
 					continue
 				}
 
+				v := inV.FieldByIndex(inField.index)
+				// NOTE: private field
+				if !v.CanInterface() {
+					continue
+				}
+				conv := c.new(v.Interface(), c.field+"."+outField.name)
+
 				// NOTE: initialized embeded field.
 				anchor := outV
 				for _, index := range outField.index {
 					v := anchor.Field(index)
 					if v.Kind() == reflect.Ptr {
 						if !v.CanSet() {
-							break
+							continue Loop
+						}
+						if conv.isNil {
+							// NOTE: set nil.
+							v.Set(reflect.New(v.Type()).Elem())
+							continue Loop
 						}
 						if v.IsNil() {
 							v.Set(reflect.New(v.Type().Elem()))
 						}
 						anchor = v.Elem()
+					} else {
+						anchor = v
 					}
 				}
 
-				v := inV.FieldByIndex(inField.index)
 				target := outV.FieldByIndex(outField.index)
-
-				// NOTE: private field
-				if !v.CanInterface() {
-					continue
-				}
-
 				if target.Kind() != reflect.Ptr {
 					target = target.Addr()
 				}
-				if err = c.new(v.Interface(), c.field+"."+outField.name).Convert(target.Interface()); err != nil {
+				if err = conv.Convert(target.Interface()); err != nil {
 					goto failed
 				}
 			}

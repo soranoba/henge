@@ -20,8 +20,9 @@ type converter struct {
 
 func (c *converter) new(i interface{}, fieldName string) *ValueConverter {
 	newConverter := New(i)
-	newConverter.converter = *c
 	newConverter.converter.field = fieldName
+	newConverter.converter.opts = c.opts
+	newConverter.converter.storage = c.storage
 	return newConverter
 }
 
@@ -105,8 +106,21 @@ func (c *ValueConverter) Convert(out interface{}) error {
 		return c.String().Convert(out)
 	case reflect.Array, reflect.Slice:
 		return c.Slice().Convert(out)
-	case reflect.Struct:
+	case reflect.Map, reflect.Struct:
+		t := reflect.ValueOf(c.value).Type()
+		for t.Kind() == reflect.Ptr {
+			t = t.Elem()
+		}
+		if t.Kind() == reflect.Map {
+			return c.Map().Convert(out)
+		}
 		return c.Struct().Convert(out)
+	case reflect.Interface:
+		outV := reflect.ValueOf(out)
+		for outV.Kind() == reflect.Ptr {
+			outV = outV.Elem()
+		}
+		outV.Set(reflect.ValueOf(c.value))
 	default:
 		var srcType reflect.Type
 		if reflect.ValueOf(c.value).IsValid() {
@@ -120,6 +134,7 @@ func (c *ValueConverter) Convert(out interface{}) error {
 			Err:     ErrUnsupportedType,
 		}
 	}
+	return nil
 }
 
 // Result returns the conversion result and error.

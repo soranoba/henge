@@ -31,3 +31,20 @@ func TestSliceConverter_PtrSlice(t *testing.T) {
 	assert.Equal(t, 1, *a[0])
 	assert.Equal(t, 2, *a[1])
 }
+
+func TestSliceConverter_NilValue(t *testing.T) {
+	s := make([]*int, 0)
+	assert.NoError(t, henge.New(make([]*uint, 3)).Slice().Convert(&s))
+	if assert.Equal(t, 3, len(s)) {
+		assert.Nil(t, s[0])
+		assert.Nil(t, s[1])
+		assert.Nil(t, s[2])
+	}
+
+	a := [2]*int{}
+	assert.NoError(t, henge.New(make([]*uint, 3)).Slice().Convert(&a))
+	if assert.Equal(t, 2, len(a)) {
+		assert.Nil(t, a[0])
+		assert.Nil(t, a[1])
+	}
+}

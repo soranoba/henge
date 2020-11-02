@@ -53,6 +53,28 @@ func TestStructConverter_EmbededField(t *testing.T) {
 	assert.Equal(t, "b", in.B)
 }
 
+func TestStructConverter_EmbededPtrField(t *testing.T) {
+	type In struct {
+		A string
+	}
+	type Embeded3 struct {
+		A string
+	}
+	type Embeded2 struct {
+		*Embeded3
+	}
+	type Embeded1 struct {
+		Embeded2
+	}
+	type Out struct {
+		*Embeded1
+	}
+	in := In{A: "a"}
+	out := Out{}
+	assert.NoError(t, henge.New(in).Struct().Convert(&out))
+	assert.Equal(t, "a", out.A)
+}
+
 func TestStructConverter_IgnoreField(t *testing.T) {
 	type Embeded1 struct {
 		X string `henge:"-"`
@@ -167,6 +189,9 @@ func TestStructConverter_Callbacks(t *testing.T) {
 	assert.Equal(t, user.Age, out1.Age)
 
 	out1 = BeforeCallbackT{}
+	assert.Error(t, henge.New(&user).Struct().Convert(&out1))
+
+	out1 = BeforeCallbackT{}
 	assert.Error(t, henge.New(struct{ Name string }{"Bob"}).Convert(&out1))
 
 	out2 := AfterCallbackT{}
@@ -177,18 +202,27 @@ func TestStructConverter_Callbacks(t *testing.T) {
 	assert.Equal(t, 48, out2.Age)
 
 	out2 = AfterCallbackT{}
+	assert.Error(t, henge.New(&user).Struct().Convert(&out2))
+
+	out2 = AfterCallbackT{}
 	assert.Error(t, henge.New(struct{ Name string }{"Carol"}).Convert(&out2))
 }
 
 func TestStructConverter_NilField(t *testing.T) {
+	type Embeded struct {
+		S *string
+	}
 	type In struct {
 		A *string
 		B *uint
 		C *int
 		D *bool
 		E *float64
+		S *string
+		x uint
 	}
 	type Out struct {
+		*Embeded
 		A *string
 		B *uint
 		C *int
@@ -202,4 +236,22 @@ func TestStructConverter_NilField(t *testing.T) {
 	assert.Nil(t, out.C)
 	assert.Nil(t, out.D)
 	assert.Nil(t, out.E)
+}
+
+func TestStructConverter_MapField(t *testing.T) {
+	type In struct {
+		X map[string]interface{}
+		Y map[string]int
+	}
+	type Out struct {
+		X map[int]string
+		Y map[string]interface{}
+	}
+	var out Out
+	assert.NoError(t, henge.New(In{X: map[string]interface{}{"1": "a", "2": "b"}}).Convert(&out))
+	if assert.NotNil(t, out.X) {
+		assert.Equal(t, "a", out.X[1])
+		assert.Equal(t, "b", out.X[2])
+	}
+	assert.Nil(t, out.Y)
 }

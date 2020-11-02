@@ -11,7 +11,8 @@ type stringOpts struct {
 }
 
 type mapOpts struct {
-	maxDepth uint
+	maxDepth   uint
+	filterFunc func(k interface{}, v interface{}) bool
 }
 
 func defaultConverterOpts() ConverterOpts {
@@ -39,5 +40,11 @@ func WithMaxDepth(maxDepth uint) func(*ConverterOpts) {
 	}
 	return func(opt *ConverterOpts) {
 		opt.mapOpts.maxDepth = maxDepth
+	}
+}
+
+func WithFilter(cond func(k interface{}, v interface{}) bool) func(*ConverterOpts) {
+	return func(opt *ConverterOpts) {
+		opt.mapOpts.filterFunc = cond
 	}
 }

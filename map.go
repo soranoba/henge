@@ -7,6 +7,11 @@ func (c *ValueConverter) Map() *MapConverter {
 	return c.mapWithDepth(0)
 }
 
+// JsonMap converts the input to json map type.
+func (c *ValueConverter) JsonMap() *JsonMapConverter {
+	return c.jsonMapWithDepth(0)
+}
+
 func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 	var (
 		value map[interface{}]interface{}
@@ -19,16 +24,20 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 		value = map[interface{}]interface{}{}
 		iter := inV.MapRange()
 		for iter.Next() {
+			iterK := iter.Key()
 			iterV := iter.Value()
+			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(iterK.Interface(), iterV.Interface()) {
+				continue
+			}
 			if reflect.Indirect(iterV).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
-				strKey := New(iter.Key().Interface()).String().Value()
+				strKey := New(iterK.Interface()).String().Value()
 				var v interface{}
 				if v, err = c.new(iterV.Interface(), c.field+"."+strKey).mapWithDepth(depth + 1).Result(); err != nil {
 					break
 				}
-				value[iter.Key().Interface()] = v
+				value[iterK.Interface()] = v
 			} else {
-				value[iter.Key().Interface()] = iterV.Interface()
+				value[iterK.Interface()] = iterV.Interface()
 			}
 		}
 	case reflect.Struct:
@@ -37,25 +46,118 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 			field := inV.Field(i)
 			if !field.CanInterface() {
 				continue
-			} else if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
-				key := inV.Type().Field(i).Name
+			}
+
+			key := inV.Type().Field(i).Name
+			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(key, field.Interface()) {
+				continue
+			}
+			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
 				var v interface{}
 				if v, err = c.new(field.Interface(), c.field+"."+key).mapWithDepth(depth + 1).Result(); err != nil {
 					break
 				}
 				value[key] = v
 			} else {
-				value[inV.Type().Field(i).Name] = field.Interface()
+				value[key] = field.Interface()
 			}
 		}
 	default:
 		err = ErrUnsupportedType
 	}
 
+	if err != nil {
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
+		err = &ConvertError{
+			Field:   c.field,
+			SrcType: srcType,
+			DstType: reflect.ValueOf(value).Type(),
+			Value:   c.value,
+			Err:     err,
+		}
+	}
+
 	if c.isNil {
 		return &MapConverter{converter: c.converter, value: nil, err: err}
 	}
 	return &MapConverter{converter: c.converter, value: value, err: err}
+}
+
+func (c *ValueConverter) jsonMapWithDepth(depth uint) *JsonMapConverter {
+	var (
+		value map[string]interface{}
+		err   error
+	)
+
+	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	switch inV.Kind() {
+	case reflect.Map:
+		value = map[string]interface{}{}
+		iter := inV.MapRange()
+		for iter.Next() {
+			iterK := iter.Key()
+			iterV := iter.Value()
+			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(iterK.Interface(), iterV.Interface()) {
+				continue
+			}
+			strKey := New(iter.Key().Interface()).String().Value()
+			if reflect.Indirect(iterV).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
+				var v interface{}
+				if v, err = c.new(iterV.Interface(), c.field+"."+strKey).jsonMapWithDepth(depth + 1).Result(); err != nil {
+					break
+				}
+				value[strKey] = v
+			} else {
+				value[strKey] = iterV.Interface()
+			}
+		}
+	case reflect.Struct:
+		value = map[string]interface{}{}
+		for i := 0; i < inV.NumField(); i++ {
+			field := inV.Field(i)
+			if !field.CanInterface() {
+				continue
+			}
+
+			key := inV.Type().Field(i).Name
+			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(key, field.Interface()) {
+				continue
+			}
+			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
+				var v interface{}
+				if v, err = c.new(field.Interface(), c.field+"."+key).jsonMapWithDepth(depth + 1).Result(); err != nil {
+					break
+				}
+				value[key] = v
+			} else {
+				value[key] = field.Interface()
+			}
+		}
+	default:
+		err = ErrUnsupportedType
+	}
+
+	if err != nil {
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
+		err = &ConvertError{
+			Field:   c.field,
+			SrcType: srcType,
+			DstType: reflect.ValueOf(value).Type(),
+			Value:   c.value,
+			Err:     err,
+		}
+	}
+
+	if c.isNil {
+		return &JsonMapConverter{converter: c.converter, value: nil, err: err}
+	}
+	return &JsonMapConverter{converter: c.converter, value: value, err: err}
 }
 
 // MapConverter is a converter that converts a map type to another type.
@@ -71,6 +173,13 @@ func (c *MapConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
 		panic("out must be ptr")
+	}
+
+	if c.err != nil {
+		return c.err
+	}
+	if c.isNil {
+		return nil
 	}
 
 	for outV.Kind() == reflect.Ptr {
@@ -152,5 +261,27 @@ func (c *MapConverter) Value() map[interface{}]interface{} {
 
 // Error returns an error if the conversion fails.
 func (c *MapConverter) Error() error {
+	return c.err
+}
+
+// JsonMapConverter is a converter that converts a json map type to another type.
+type JsonMapConverter struct {
+	converter
+	value map[string]interface{}
+	err   error
+}
+
+// Result returns the conversion result and error.
+func (c *JsonMapConverter) Result() (map[string]interface{}, error) {
+	return c.value, c.err
+}
+
+// Value returns the conversion result.
+func (c *JsonMapConverter) Value() map[string]interface{} {
+	return c.value
+}
+
+// Error returns an error if the conversion fails.
+func (c *JsonMapConverter) Error() error {
 	return c.err
 }

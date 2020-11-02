@@ -61,6 +61,13 @@ func (c *SliceConverter) Convert(out interface{}) error {
 		panic("out must be ptr")
 	}
 
+	if c.err != nil {
+		return c.err
+	}
+	if c.isNil {
+		return nil
+	}
+
 	for outV.Kind() == reflect.Ptr {
 		if outV.IsNil() {
 			outV.Set(reflect.New(outV.Type().Elem()))

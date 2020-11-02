@@ -94,6 +94,9 @@ func (c *FloatConverter) Convert(out interface{}) error {
 	if c.err != nil {
 		return c.err
 	}
+	if c.isNil {
+		return nil
+	}
 
 	for outV.Kind() == reflect.Ptr {
 		if outV.IsNil() {
