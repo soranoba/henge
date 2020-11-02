@@ -53,15 +53,24 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 	}
 
 	if err != nil {
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
 		err = &ConvertError{
 			Field:   c.field,
-			SrcType: reflect.ValueOf(c.value).Type(),
+			SrcType: srcType,
 			DstType: reflect.ValueOf((*uint64)(nil)).Type().Elem(),
 			Value:   c.value,
 			Err:     err,
 		}
 	}
 	return &UnsignedIntegerConverter{converter: c.converter, value: value, err: err}
+}
+
+// UintPtr converts the input to pointer of uint type.
+func (c *ValueConverter) UintPtr() *UnsignedIntegerPtrConverter {
+	return c.Uint().Ptr()
 }
 
 // UnsignedIntegerConverter is a converter that converts an unsigned integer type to another type.
@@ -95,25 +104,33 @@ func (c *UnsignedIntegerConverter) Convert(out interface{}) error {
 		outV = outV.Elem()
 	}
 
+	overflowErr := &ConvertError{
+		Field:   c.field,
+		SrcType: reflect.ValueOf(c.value).Type(),
+		DstType: outV.Type(),
+		Value:   c.value,
+		Err:     ErrOverflow,
+	}
+
 	switch outV.Kind() {
 	case reflect.Uint:
 		if uint64(uint(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint8:
 		if uint64(uint8(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint16:
 		if uint64(uint16(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint32:
 		if uint64(uint32(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Uint64:

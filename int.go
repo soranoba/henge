@@ -52,15 +52,24 @@ func (c *ValueConverter) Int() *IntegerConverter {
 	}
 
 	if err != nil {
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
 		err = &ConvertError{
 			Field:   c.field,
-			SrcType: reflect.ValueOf(c.value).Type(),
+			SrcType: srcType,
 			DstType: reflect.ValueOf((*int64)(nil)).Type().Elem(),
 			Value:   c.value,
 			Err:     err,
 		}
 	}
 	return &IntegerConverter{converter: c.converter, value: value, err: err}
+}
+
+// IntPtr converts the input to pointer of int type.
+func (c *ValueConverter) IntPtr() *IntegerPtrConverter {
+	return c.Int().Ptr()
 }
 
 // IntegerConverter is a converter that converts an integer type to another type.
@@ -94,25 +103,33 @@ func (c *IntegerConverter) Convert(out interface{}) error {
 		outV = outV.Elem()
 	}
 
+	overflowErr := &ConvertError{
+		Field:   c.field,
+		SrcType: reflect.ValueOf(c.value).Type(),
+		DstType: outV.Type(),
+		Value:   c.value,
+		Err:     ErrOverflow,
+	}
+
 	switch outV.Kind() {
 	case reflect.Int:
 		if int64(int(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int8:
 		if int64(int8(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int16:
 		if int64(int16(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int32:
 		if int64(int32(c.value)) != c.value {
-			return ErrOverflow
+			return overflowErr
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Int64:

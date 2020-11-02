@@ -26,6 +26,26 @@ func (c *ValueConverter) Slice() *SliceConverter {
 	return &SliceConverter{converter: c.converter, value: value, err: err}
 }
 
+// StringSlice converts the input to slice of string type.
+func (c *ValueConverter) StringSlice() *StringSliceConverter {
+	return c.Slice().StringSlice()
+}
+
+// IntSlice converts the input to slice of int type.
+func (c *ValueConverter) IntSlice() *IntegerSliceConverter {
+	return c.Slice().IntSlice()
+}
+
+// UintSlice converts the input to slice of uint type.
+func (c *ValueConverter) UintSlice() *UnsignedIntegerSliceConverter {
+	return c.Slice().UintSlice()
+}
+
+// FloatSlice converts the input to slice of fload type.
+func (c *ValueConverter) FloatSlice() *FloatSliceConverter {
+	return c.Slice().FloatSlice()
+}
+
 // SliceConverter is a converter that converts a slice type to another type.
 type SliceConverter struct {
 	converter
@@ -45,11 +65,19 @@ func (c *SliceConverter) Convert(out interface{}) error {
 		outV = outV.Elem()
 	}
 
+	unsupportedTypeErr := &ConvertError{
+		Field:   c.field,
+		SrcType: reflect.ValueOf(c.value).Type(),
+		DstType: outV.Type(),
+		Value:   c.value,
+		Err:     ErrUnsupportedType,
+	}
+
 	switch outV.Kind() {
 	case reflect.Array:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
 		if inV.Kind() != reflect.Array && inV.Kind() != reflect.Slice {
-			return ErrUnsupportedType
+			return unsupportedTypeErr
 		}
 
 		v := reflect.New(reflect.ArrayOf(outV.Len(), outV.Type().Elem())).Elem()
@@ -65,7 +93,7 @@ func (c *SliceConverter) Convert(out interface{}) error {
 	case reflect.Slice:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
 		if inV.Kind() != reflect.Array && inV.Kind() != reflect.Slice {
-			return ErrUnsupportedType
+			return unsupportedTypeErr
 		}
 
 		v := reflect.MakeSlice(reflect.SliceOf(outV.Type().Elem()), inV.Len(), inV.Len())
@@ -79,7 +107,7 @@ func (c *SliceConverter) Convert(out interface{}) error {
 		}
 		outV.Set(v)
 	default:
-		return ErrUnsupportedType
+		return unsupportedTypeErr
 	}
 	return nil
 }

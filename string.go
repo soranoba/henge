@@ -47,15 +47,24 @@ func (c *ValueConverter) String() *StringConverter {
 	}
 
 	if err != nil {
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
 		err = &ConvertError{
 			Field:   c.field,
-			SrcType: reflect.ValueOf(c.value).Type(),
+			SrcType: srcType,
 			DstType: reflect.ValueOf((*string)(nil)).Type().Elem(),
 			Value:   c.value,
 			Err:     err,
 		}
 	}
 	return &StringConverter{converter: c.converter, value: value, err: err}
+}
+
+// StringPtr converts the input to pointer of string type.
+func (c *ValueConverter) StringPtr() *StringPtrConverter {
+	return c.String().Ptr()
 }
 
 // StringConverter is a converter that converts a string type to another type.

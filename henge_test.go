@@ -25,93 +25,192 @@ func ExampleValueConverter_Convert() {
 	fmt.Println("int")
 
 	var i8 int8
-	fmt.Println(New(math.MaxInt16).Convert(&i8), i8)
-	fmt.Println(New(math.MinInt16).Convert(&i8), i8)
-	fmt.Println(New("24").Convert(&i8), i8)
+	if err := New(math.MaxInt16).Convert(&i8); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i8)
+	}
+	if err := New(math.MinInt16).Convert(&i8); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i8)
+	}
+	if err := New("24").Convert(&i8); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i8)
+	}
 
 	var i16 int16
-	fmt.Println(New(math.MaxInt32).Convert(&i16), i16)
-	fmt.Println(New(math.MinInt32).Convert(&i16), i16)
-	fmt.Println(New("24").Convert(&i16), i16)
+	if err := New(math.MaxInt32).Convert(&i16); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i16)
+	}
+	if err := New(math.MinInt32).Convert(&i16); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i16)
+	}
+	if err := New("24").Convert(&i16); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i16)
+	}
 
 	var i32 int32
-	fmt.Println(New(math.MaxInt64).Convert(&i32), i32)
-	fmt.Println(New(math.MinInt64).Convert(&i32), i32)
-	fmt.Println(New("24").Convert(&i32), i32)
+	if err := New(math.MaxInt64).Convert(&i32); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i32)
+	}
+	if err := New(math.MinInt64).Convert(&i32); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i32)
+	}
+	if err := New("24").Convert(&i32); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i32)
+	}
 
 	var i64 int64
-	fmt.Println(New(math.MaxInt64).Convert(&i64), i64)
-	fmt.Println(New(math.MinInt64).Convert(&i64), i64)
-	fmt.Println(New("24").Convert(&i64), i64)
-	fmt.Println()
+	if err := New(math.MaxInt64).Convert(&i64); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i64)
+	}
+	if err := New(math.MinInt64).Convert(&i64); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i64)
+	}
+	if err := New("24").Convert(&i64); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(i64)
+	}
 
+	fmt.Println()
 	fmt.Println("uint")
 
 	var u8 uint8
-	fmt.Println(New(math.MaxUint16).Convert(&u8), u8)
-	fmt.Println(New("24").Convert(&u8), u8)
+	if err := New(math.MaxUint16).Convert(&u8); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u8)
+	}
+	if err := New("24").Convert(&u8); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u8)
+	}
 
 	var u16 uint16
-	fmt.Println(New(math.MaxUint32).Convert(&u16), u16)
-	fmt.Println(New("24").Convert(&u16), u16)
+	if err := New(math.MaxUint32).Convert(&u16); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u16)
+	}
+	if err := New("24").Convert(&u16); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u16)
+	}
 
 	var u32 uint32
-	fmt.Println(New(uint64(math.MaxUint64)).Convert(&u32), u32)
-	fmt.Println(New("24").Convert(&u32), u32)
+	if err := New(uint64(math.MaxUint64)).Convert(&u32); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u32)
+	}
+	if err := New("24").Convert(&u32); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u32)
+	}
 
 	var u64 uint64
-	fmt.Println(New(uint64(math.MaxUint64)).Convert(&u64), u64)
-	fmt.Println(New("24").Convert(&u64), u64)
-	fmt.Println()
+	if err := New(uint64(math.MaxUint64)).Convert(&u64); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u64)
+	}
+	if err := New("24").Convert(&u64); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(u64)
+	}
 
+	fmt.Println()
 	fmt.Println("float")
 
 	var f32 float32
-	fmt.Println(New(math.MaxFloat64).Convert(&f32), f32)
-	fmt.Println(New("24").Convert(&f32), f32)
+	if err := New(math.MaxFloat64).Convert(&f32); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(f32)
+	}
+	if err := New("24").Convert(&f32); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(f32)
+	}
 
 	var f64 float64
-	fmt.Println(New(math.MaxFloat64).Convert(&f64), f64)
-	fmt.Println(New("24").Convert(&f64), f64)
-	fmt.Println()
+	if err := New(math.MaxFloat64).Convert(&f64); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(f64)
+	}
+	if err := New("24").Convert(&f64); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(f64)
+	}
 
+	fmt.Println()
 	fmt.Println("string")
 
 	var s string
-	fmt.Println(New(123).Convert(&s), s)
-	fmt.Println()
+	if err := New(123).Convert(&s); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(s)
+	}
 
 	// Output:
 	// int
-	// overflows 0
-	// overflows 0
-	// <nil> 24
-	// overflows 0
-	// overflows 0
-	// <nil> 24
-	// overflows 0
-	// overflows 0
-	// <nil> 24
-	// <nil> 9223372036854775807
-	// <nil> -9223372036854775808
-	// <nil> 24
+	// Failed to convert from int64 to int8: fields=, value=32767, error=overflows
+	// Failed to convert from int64 to int8: fields=, value=-32768, error=overflows
+	// 24
+	// Failed to convert from int64 to int16: fields=, value=2147483647, error=overflows
+	// Failed to convert from int64 to int16: fields=, value=-2147483648, error=overflows
+	// 24
+	// Failed to convert from int64 to int32: fields=, value=9223372036854775807, error=overflows
+	// Failed to convert from int64 to int32: fields=, value=-9223372036854775808, error=overflows
+	// 24
+	// 9223372036854775807
+	// -9223372036854775808
+	// 24
 	//
 	// uint
-	// overflows 0
-	// <nil> 24
-	// overflows 0
-	// <nil> 24
-	// overflows 0
-	// <nil> 24
-	// <nil> 18446744073709551615
-	// <nil> 24
+	// Failed to convert from uint64 to uint8: fields=, value=0xffff, error=overflows
+	// 24
+	// Failed to convert from uint64 to uint16: fields=, value=0xffffffff, error=overflows
+	// 24
+	// Failed to convert from uint64 to uint32: fields=, value=0xffffffffffffffff, error=overflows
+	// 24
+	// 18446744073709551615
+	// 24
 	//
 	// float
-	// overflows 0
-	// <nil> 24
-	// <nil> 1.7976931348623157e+308
-	// <nil> 24
+	// Failed to convert from float64 to float32: fields=, value=1.7976931348623157e+308, error=overflows
+	// 24
+	// 1.7976931348623157e+308
+	// 24
 	//
 	// string
-	// <nil> 123
+	// 123
 }

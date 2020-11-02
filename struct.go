@@ -1,6 +1,7 @@
 package henge
 
 import (
+	"errors"
 	"reflect"
 )
 
@@ -126,5 +127,19 @@ func (c *StructConverter) Convert(out interface{}) error {
 	}
 
 failed:
+	var convertError *ConvertError
+	if err != nil && !errors.As(err, &convertError) {
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
+		err = &ConvertError{
+			Field:   c.field,
+			SrcType: srcType,
+			DstType: outV.Type(),
+			Value:   c.value,
+			Err:     err,
+		}
+	}
 	return err
 }

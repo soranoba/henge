@@ -8,6 +8,7 @@ import (
 type Converter interface {
 	InstanceGet(key string) interface{}
 	InstanceSet(key string, value interface{})
+	InstanceSetValues(m map[string]interface{})
 }
 
 type converter struct {
@@ -32,6 +33,13 @@ func (c *converter) InstanceGet(key string) interface{} {
 // InstanceSet saves the value by specifying the key.
 func (c *converter) InstanceSet(key string, value interface{}) {
 	c.storage[key] = value
+}
+
+// InstanceSetValues saves multiple key-value pairs.
+func (c *converter) InstanceSetValues(m map[string]interface{}) {
+	for k, v := range m {
+		c.storage[k] = v
+	}
 }
 
 // ValueConverter is a converter that converts an interface type to another type.
@@ -91,6 +99,8 @@ func (c *ValueConverter) Convert(out interface{}) error {
 		return c.Uint().Convert(out)
 	case reflect.Float32, reflect.Float64:
 		return c.Float().Convert(out)
+	case reflect.Bool:
+		return c.Bool().Convert(out)
 	case reflect.String:
 		return c.String().Convert(out)
 	case reflect.Array, reflect.Slice:
@@ -98,7 +108,17 @@ func (c *ValueConverter) Convert(out interface{}) error {
 	case reflect.Struct:
 		return c.Struct().Convert(out)
 	default:
-		return ErrUnsupportedType
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
+		return &ConvertError{
+			Field:   c.field,
+			SrcType: srcType,
+			DstType: reflect.ValueOf(out).Type(),
+			Value:   c.value,
+			Err:     ErrUnsupportedType,
+		}
 	}
 }
 

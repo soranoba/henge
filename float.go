@@ -32,15 +32,24 @@ func (c *ValueConverter) Float() *FloatConverter {
 	}
 
 	if err != nil {
+		var srcType reflect.Type
+		if reflect.ValueOf(c.value).IsValid() {
+			srcType = reflect.ValueOf(c.value).Type()
+		}
 		err = &ConvertError{
 			Field:   c.field,
-			SrcType: reflect.ValueOf(c.value).Type(),
+			SrcType: srcType,
 			DstType: reflect.ValueOf((*float64)(nil)).Type().Elem(),
 			Value:   c.value,
 			Err:     err,
 		}
 	}
 	return &FloatConverter{converter: c.converter, value: value, err: err}
+}
+
+// FloatrPtr converts the input to pointer of float type.
+func (c *ValueConverter) FloatrPtr() *FloatPtrConverter {
+	return c.Float().Ptr()
 }
 
 // FloatConverter is a converter that converts a float type to another type.
@@ -93,7 +102,13 @@ func (c *FloatConverter) Convert(out interface{}) error {
 	switch outV.Kind() {
 	case reflect.Float32:
 		if float64(float32(c.value)) != c.value {
-			return ErrOverflow
+			return &ConvertError{
+				Field:   c.field,
+				SrcType: reflect.ValueOf(c.value).Type(),
+				DstType: outV.Type(),
+				Value:   c.value,
+				Err:     ErrOverflow,
+			}
 		}
 		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
 	case reflect.Float64:
