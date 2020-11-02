@@ -27,6 +27,8 @@ func defaultConverterOpts() ConverterOpts {
 	}
 }
 
+// WithFloatFormat is an option when converting from float to string.
+// Ref: strconv.FormatFloat
 func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.stringOpts.fmt = fmt
@@ -34,6 +36,10 @@ func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
 	}
 }
 
+// WithMaxDepth is an option when converting to map.
+//
+// By default, all structs are converted to maps.
+// It can be used when converting only the top-level.
 func WithMaxDepth(maxDepth uint) func(*ConverterOpts) {
 	if maxDepth == 0 {
 		panic("WithMaxDepth does not support zero")
@@ -43,6 +49,10 @@ func WithMaxDepth(maxDepth uint) func(*ConverterOpts) {
 	}
 }
 
+// WithFilter is an option when converting to map.
+//
+// By default, values is copied even if it is nil.
+// You can use this option to prevent this.
 func WithFilter(cond func(k interface{}, v interface{}) bool) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.mapOpts.filterFunc = cond
