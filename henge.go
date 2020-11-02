@@ -83,16 +83,16 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 // Convert converts the input to the out type and assigns it.
 // If the conversion fails, the method returns an error.
 func (c *ValueConverter) Convert(out interface{}) error {
-	outV := reflect.ValueOf(out)
-	if outV.Kind() != reflect.Ptr {
+	outT := reflect.ValueOf(out).Type()
+	if outT.Kind() != reflect.Ptr {
 		panic("out must be ptr")
 	}
 
-	for outV.Kind() == reflect.Ptr {
-		outV = outV.Elem()
+	for outT.Kind() == reflect.Ptr {
+		outT = outT.Elem()
 	}
 
-	switch outV.Kind() {
+	switch outT.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return c.Int().Convert(out)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:

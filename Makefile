@@ -3,8 +3,8 @@ build:
 	go build
 
 test:
-	go test ./...
-	cd tests; go test ./...
+	go test ./... -count=1
+	cd tests; go test ./... -count=1
 
 format:
 	gofmt -w ./

@@ -100,6 +100,9 @@ func (c *IntegerConverter) Convert(out interface{}) error {
 	}
 
 	for outV.Kind() == reflect.Ptr {
+		if outV.IsNil() {
+			outV.Set(reflect.New(outV.Type().Elem()))
+		}
 		outV = outV.Elem()
 	}
 

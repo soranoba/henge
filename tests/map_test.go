@@ -28,3 +28,34 @@ func TestMapConverter_Nil(t *testing.T) {
 	assert.Error(t, err)
 	assert.Nil(t, m)
 }
+
+func TestMapConverter_ConvertPtr(t *testing.T) {
+	src := map[string]int{
+		"a": 1,
+		"b": 2,
+	}
+	var dst1 map[string]*int
+	assert.NoError(t, henge.New(src).Map().Convert(&dst1))
+	assert.Equal(t, "1", henge.New(dst1["a"]).String().Value())
+	assert.Equal(t, "2", henge.New(dst1["b"]).String().Value())
+
+	var dst2 map[string]*uint
+	assert.NoError(t, henge.New(src).Map().Convert(&dst2))
+	assert.Equal(t, "1", henge.New(dst2["a"]).String().Value())
+	assert.Equal(t, "2", henge.New(dst2["b"]).String().Value())
+
+	var dst3 map[string]*float64
+	assert.NoError(t, henge.New(src).Map().Convert(&dst3))
+	assert.Equal(t, "1", henge.New(dst3["a"]).String().Value())
+	assert.Equal(t, "2", henge.New(dst3["b"]).String().Value())
+
+	var dst4 map[string]*bool
+	assert.NoError(t, henge.New(src).Map().Convert(&dst4))
+	assert.Equal(t, true, henge.New(dst4["a"]).Bool().Value())
+	assert.Equal(t, true, henge.New(dst4["b"]).Bool().Value())
+
+	var dst5 map[string]*string
+	assert.NoError(t, henge.New(src).Map().Convert(&dst5))
+	assert.Equal(t, "1", henge.New(dst5["a"]).String().Value())
+	assert.Equal(t, "2", henge.New(dst5["b"]).String().Value())
+}

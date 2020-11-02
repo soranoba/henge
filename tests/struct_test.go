@@ -179,3 +179,27 @@ func TestStructConverter_Callbacks(t *testing.T) {
 	out2 = AfterCallbackT{}
 	assert.Error(t, henge.New(struct{ Name string }{"Carol"}).Convert(&out2))
 }
+
+func TestStructConverter_NilField(t *testing.T) {
+	type In struct {
+		A *string
+		B *uint
+		C *int
+		D *bool
+		E *float64
+	}
+	type Out struct {
+		A *string
+		B *uint
+		C *int
+		D *bool
+		E *float64
+	}
+	var out Out
+	assert.NoError(t, henge.New(&In{}).Convert(&out))
+	assert.Nil(t, out.A)
+	assert.Nil(t, out.B)
+	assert.Nil(t, out.C)
+	assert.Nil(t, out.D)
+	assert.Nil(t, out.E)
+}
