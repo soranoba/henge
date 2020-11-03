@@ -98,7 +98,7 @@ func (c *StructConverter) Convert(out interface{}) error {
 				}
 				conv := c.new(v.Interface(), c.field+"."+outField.name)
 
-				// NOTE: initialized embeded field.
+				// NOTE: initialized embedded field.
 				anchor := outV
 				for _, index := range outField.index {
 					v := anchor.Field(index)

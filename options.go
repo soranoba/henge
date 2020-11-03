@@ -1,5 +1,6 @@
 package henge
 
+// ConverterOpts are options for the conversion.
 type ConverterOpts struct {
 	stringOpts
 	mapOpts

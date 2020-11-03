@@ -6,16 +6,16 @@ import (
 )
 
 func ExampleGetStructFieldIndexes() {
-	type Embeded2 struct {
+	type Embedded2 struct {
 		A string // [0 0 0]
 	}
-	type Embeded1 struct {
-		*Embeded2        // [0 0]
-		B         string // [0 1]
+	type Embedded1 struct {
+		*Embedded2        // [0 0]
+		B          string // [0 1]
 	}
 	type Out struct {
-		*Embeded1     // [0]
-		A         int // [1]
+		*Embedded1     // [0]
+		A          int // [1]
 	}
 
 	fieldNames := getStructFieldIndexes(reflect.ValueOf(Out{}).Type())
@@ -26,16 +26,16 @@ func ExampleGetStructFieldIndexes() {
 }
 
 func ExampleGetStructFields() {
-	type Embeded2 struct {
+	type Embedded2 struct {
 		A string `henge:"-"`
 	}
-	type Embeded1 struct {
-		*Embeded2
+	type Embedded1 struct {
+		*Embedded2
 		B string
 	}
 	type Out struct {
-		*Embeded1 `henge:"-"`
-		A         int
+		*Embedded1 `henge:"-"`
+		A          int
 	}
 
 	for _, field := range getStructFields(reflect.ValueOf(Out{}).Type()) {
@@ -43,8 +43,8 @@ func ExampleGetStructFields() {
 	}
 
 	// Output:
-	// {Embeded1 [0] [{true}]}
-	// {Embeded2 [0 0] [{true} {false}]}
+	// {Embedded1 [0] [{true}]}
+	// {Embedded2 [0 0] [{true} {false}]}
 	// {A [0 0 0] [{true} {false} {true}]}
 	// {B [0 1] [{true} {false}]}
 	// {A [1] [{false}]}

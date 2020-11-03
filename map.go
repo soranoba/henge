@@ -222,7 +222,7 @@ func (c *MapConverter) Convert(out interface{}) error {
 			}
 
 			if value, ok := m[outField.name]; ok {
-				// NOTE: initialized embeded field.
+				// NOTE: initialized embedded field.
 				anchor := outV
 				for _, index := range outField.index {
 					v := anchor.Field(index)

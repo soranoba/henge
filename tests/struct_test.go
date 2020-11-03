@@ -14,20 +14,20 @@ type User struct {
 	Age  int
 }
 
-func TestStructConverter_EmbededField(t *testing.T) {
+func TestStructConverter_EmbeddedField(t *testing.T) {
 	type In struct {
 		A string
 		B string
 	}
-	type Embeded2 struct {
+	type Embedded2 struct {
 		A string
 	}
-	type Embeded1 struct {
-		*Embeded2
+	type Embedded1 struct {
+		*Embedded2
 		B string
 	}
 	type Out struct {
-		*Embeded1
+		*Embedded1
 		A string
 	}
 
@@ -36,14 +36,14 @@ func TestStructConverter_EmbededField(t *testing.T) {
 	if err := henge.New(in).Struct().Convert(&out); err != nil {
 		assert.NoError(t, err)
 	}
-	if assert.NotNil(t, out.Embeded1) && assert.NotNil(t, out.Embeded2) {
+	if assert.NotNil(t, out.Embedded1) && assert.NotNil(t, out.Embedded2) {
 		// NOTE: If the names conflict, it will assign to everything possible.
 		assert.Equal(t, "a", out.A)
-		assert.Equal(t, "a", out.Embeded1.Embeded2.A)
+		assert.Equal(t, "a", out.Embedded1.Embedded2.A)
 		assert.Equal(t, "b", out.B)
 	}
 
-	out = Out{A: "a", Embeded1: &Embeded1{Embeded2: &Embeded2{A: "Embeded2.a"}, B: "b"}}
+	out = Out{A: "a", Embedded1: &Embedded1{Embedded2: &Embedded2{A: "Embedded2.a"}, B: "b"}}
 	in = In{}
 	if err := henge.New(out).Struct().Convert(&in); err != nil {
 		assert.NoError(t, err)
@@ -53,21 +53,21 @@ func TestStructConverter_EmbededField(t *testing.T) {
 	assert.Equal(t, "b", in.B)
 }
 
-func TestStructConverter_EmbededPtrField(t *testing.T) {
+func TestStructConverter_EmbeddedPtrField(t *testing.T) {
 	type In struct {
 		A string
 	}
-	type Embeded3 struct {
+	type Embedded3 struct {
 		A string
 	}
-	type Embeded2 struct {
-		*Embeded3
+	type Embedded2 struct {
+		*Embedded3
 	}
-	type Embeded1 struct {
-		Embeded2
+	type Embedded1 struct {
+		Embedded2
 	}
 	type Out struct {
-		*Embeded1
+		*Embedded1
 	}
 	in := In{A: "a"}
 	out := Out{}
@@ -76,31 +76,31 @@ func TestStructConverter_EmbededPtrField(t *testing.T) {
 }
 
 func TestStructConverter_IgnoreField(t *testing.T) {
-	type Embeded1 struct {
+	type Embedded1 struct {
 		X string `henge:"-"`
 		Y string
 	}
-	type Embeded2 struct {
+	type Embedded2 struct {
 		Z string
 	}
 
 	type In struct {
-		Embeded1 `henge:"-"`
-		Embeded2
+		Embedded1 `henge:"-"`
+		Embedded2
 		A string `henge:"-"`
 		B string
 	}
 	type Out struct {
-		*Embeded1
-		*Embeded2 `henge:"-"`
-		A         string
-		B         string `henge:"-"`
-		X         string
-		Y         string
-		Z         string
+		*Embedded1
+		*Embedded2 `henge:"-"`
+		A          string
+		B          string `henge:"-"`
+		X          string
+		Y          string
+		Z          string
 	}
 
-	in := In{A: "a", B: "b", Embeded1: Embeded1{X: "x", Y: "y"}, Embeded2: Embeded2{Z: "z"}}
+	in := In{A: "a", B: "b", Embedded1: Embedded1{X: "x", Y: "y"}, Embedded2: Embedded2{Z: "z"}}
 	out := Out{}
 	if err := henge.New(in).Struct().Convert(&out); err != nil {
 		assert.NoError(t, err)
@@ -111,8 +111,8 @@ func TestStructConverter_IgnoreField(t *testing.T) {
 	assert.Equal(t, "", out.X)
 	assert.Equal(t, "", out.Y)
 	assert.Equal(t, "z", out.Z)
-	assert.Nil(t, out.Embeded1)
-	assert.Nil(t, out.Embeded2)
+	assert.Nil(t, out.Embedded1)
+	assert.Nil(t, out.Embedded2)
 }
 
 func TestStructConverter_InternalField(t *testing.T) {
@@ -209,7 +209,7 @@ func TestStructConverter_Callbacks(t *testing.T) {
 }
 
 func TestStructConverter_NilField(t *testing.T) {
-	type Embeded struct {
+	type Embedded struct {
 		S *string
 	}
 	type In struct {
@@ -222,7 +222,7 @@ func TestStructConverter_NilField(t *testing.T) {
 		x uint
 	}
 	type Out struct {
-		*Embeded
+		*Embedded
 		A *string
 		B *uint
 		C *int
