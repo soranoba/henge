@@ -81,6 +81,30 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 	}
 }
 
+// Model converts the input to the specified type.
+func (c *ValueConverter) Model(t interface{}) *ValueConverter {
+	var (
+		value interface{}
+		err   error
+	)
+
+	v := reflect.ValueOf(t)
+	if v.Kind() == reflect.Ptr && v.Elem().CanSet() {
+		value = t
+		err = c.Convert(t)
+	} else {
+		v = reflect.New(v.Type())
+		err = c.Convert(v.Interface())
+		value = v.Elem().Interface()
+	}
+
+	return &ValueConverter{
+		converter: c.converter,
+		value:     value,
+		err:       err,
+	}
+}
+
 // Convert converts the input to the out type and assigns it.
 // If the conversion fails, the method returns an error.
 func (c *ValueConverter) Convert(out interface{}) error {

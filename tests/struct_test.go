@@ -236,6 +236,7 @@ func TestStructConverter_NilField(t *testing.T) {
 	assert.Nil(t, out.C)
 	assert.Nil(t, out.D)
 	assert.Nil(t, out.E)
+	assert.Nil(t, out.Embedded)
 }
 
 func TestStructConverter_MapField(t *testing.T) {

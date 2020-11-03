@@ -214,3 +214,20 @@ func ExampleValueConverter_Convert() {
 	// string
 	// 123
 }
+
+func ExampleValueConverter_Model() {
+	type In struct {
+		X string
+	}
+	type Out struct {
+		X int
+	}
+
+	in := In{X: "125"}
+	if out, ok := New(in).Model(&Out{}).Value().(*Out); ok {
+		fmt.Printf("%#v -> %#v", in, out)
+	}
+
+	// Output:
+	// henge.In{X:"125"} -> &henge.Out{X:125}
+}
