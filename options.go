@@ -1,5 +1,7 @@
 package henge
 
+import "reflect"
+
 type (
 	// ConverterOpts are options for the conversion.
 	ConverterOpts struct {
@@ -66,4 +68,58 @@ func WithMapFilter(cond func(k interface{}, v interface{}) bool) func(*Converter
 	return func(opt *ConverterOpts) {
 		opt.mapOpts.filterFuns = append(opt.mapOpts.filterFuns, cond)
 	}
+}
+
+// WithoutNilMapKey is an option when converting to map.
+//
+// When it used, it will not copy if the key is nil.
+func WithoutNilMapKey() func(*ConverterOpts) {
+	return WithMapFilter(func(k interface{}, v interface{}) bool {
+		return !isNil(k)
+	})
+}
+
+// WithoutNilMapValue is an option when converting to map.
+//
+// When it used, it will not copy if the value is nil.
+func WithoutNilMapValue() func(*ConverterOpts) {
+	return WithMapFilter(func(k interface{}, v interface{}) bool {
+		return !isNil(v)
+	})
+}
+
+// WithoutZeroMapKey is an option when converting to map.
+//
+// When it used, it will not copy if the key is zero.
+func WithoutZeroMapKey() func(*ConverterOpts) {
+	return WithMapFilter(func(k interface{}, v interface{}) bool {
+		return !isZero(k)
+	})
+}
+
+// WithoutZeroMapValue is an option when converting to map.
+//
+// When it used, it will not copy if the value is zero.
+func WithoutZeroMapValue() func(*ConverterOpts) {
+	return WithMapFilter(func(k interface{}, v interface{}) bool {
+		return !isZero(v)
+	})
+}
+
+func isNil(i interface{}) bool {
+	v := reflect.ValueOf(i)
+	switch v.Kind() {
+	case reflect.Invalid:
+		return true
+	case reflect.Interface, reflect.Slice, reflect.Chan, reflect.Func,
+		reflect.Map, reflect.Ptr, reflect.UnsafePointer:
+		return v.IsNil()
+	default:
+		return false
+	}
+}
+
+func isZero(i interface{}) bool {
+	v := reflect.ValueOf(i)
+	return !v.IsValid() || v.IsZero()
 }

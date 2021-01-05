@@ -20,7 +20,7 @@ func ExampleWithFloatFormat() {
 	// WithFloatFormat('e', 2): 1.25e-02
 }
 
-func ExampleWithDepth() {
+func ExampleWithMapMaxDepth() {
 	type Nested struct {
 		Y string
 	}
@@ -44,7 +44,7 @@ func ExampleWithDepth() {
 	// WithMapMaxDepth(1): map[a:map[Nested:{y} X:a]]
 }
 
-func ExampleWithFilter() {
+func ExampleWithMapFilter() {
 	type Value struct {
 		X string
 	}
@@ -79,4 +79,120 @@ func ExampleWithFilter() {
 	// Default:                  map[a:map[X:a] b:<nil>]
 	// Except when value is nil: map[a:map[X:a]]
 	// Multiple Filters:         map[]
+}
+
+func Example_isNil() {
+	fmt.Printf("string: %v\n", isNil(""))
+	fmt.Printf("*string: %v\n", isNil((*string)(nil)))
+	fmt.Printf("nil: %v\n", isNil(nil))
+	fmt.Printf("[]string: %v\n", isNil(([]string)(nil)))
+
+	// Output:
+	// string: false
+	// *string: true
+	// nil: true
+	// []string: true
+}
+
+func Example_isZero() {
+	fmt.Printf("string: %v\n", isZero(""))
+	fmt.Printf("*string: %v\n", isZero((*string)(nil)))
+	fmt.Printf("nil: %v\n", isZero(nil))
+	fmt.Printf("[]string: %v\n", isZero(([]string)(nil)))
+
+	// Output:
+	// string: true
+	// *string: true
+	// nil: true
+	// []string: true
+}
+
+func ExampleWithoutNilMapKey() {
+	in := map[interface{}]interface{}{
+		nil:            "a",
+		(*string)(nil): "b",
+		"":             "c",
+	}
+
+	fmt.Printf(
+		"Default:                    %v\n",
+		New(in).Map().Value(),
+	)
+
+	fmt.Printf(
+		"Except when the key is nil: %v\n",
+		New(in, WithoutNilMapKey()).Map().Value(),
+	)
+
+	// Output:
+	// Default:                    map[<nil>:a <nil>:b :c]
+	// Except when the key is nil: map[:c]
+}
+
+func ExampleWithoutNilMapValue() {
+	in := map[interface{}]interface{}{
+		"a": nil,
+		"b": (*string)(nil),
+		"c": "",
+	}
+
+	fmt.Printf(
+		"Default:                      %v\n",
+		New(in).Map().Value(),
+	)
+
+	fmt.Printf(
+		"Except when the value is nil: %v\n",
+		New(in, WithoutNilMapValue()).Map().Value(),
+	)
+
+	// Output:
+	// Default:                      map[a:<nil> b:<nil> c:]
+	// Except when the value is nil: map[c:]
+}
+
+func ExampleWithoutZeroMapKey() {
+	in := map[interface{}]interface{}{
+		nil:            "a",
+		(*string)(nil): "b",
+		"":             "c",
+		"d":            "d",
+	}
+
+	fmt.Printf(
+		"Default:                     %v\n",
+		New(in).Map().Value(),
+	)
+
+	fmt.Printf(
+		"Except when the key is zero: %v\n",
+		New(in, WithoutZeroMapKey()).Map().Value(),
+	)
+
+	// Output:
+	// Default:                     map[<nil>:a <nil>:b :c d:d]
+	// Except when the key is zero: map[d:d]
+}
+
+func ExampleWithoutZeroMapValue() {
+	in := map[interface{}]interface{}{
+		"a": nil,
+		"b": (*string)(nil),
+		"c": "",
+		"d": "d",
+	}
+
+	fmt.Printf(
+		"Default:                       %v\n",
+		New(in).Map().Value(),
+	)
+
+	fmt.Printf(
+		"Except when the value is zero: %v\n",
+		New(in, WithoutZeroMapValue()).Map().Value(),
+	)
+
+	// Output:
+	// Default:                       map[a:<nil> b:<nil> c: d:d]
+	// Except when the value is zero: map[d:d]
 }
