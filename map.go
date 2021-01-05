@@ -26,7 +26,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 		for iter.Next() {
 			iterK := iter.Key()
 			iterV := iter.Value()
-			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(iterK.Interface(), iterV.Interface()) {
+			if !c.opts.mapOpts.filterFuns.All(iterK.Interface(), iterV.Interface()) {
 				continue
 			}
 			if reflect.Indirect(iterV).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
@@ -49,7 +49,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 			}
 
 			key := inV.Type().Field(i).Name
-			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(key, field.Interface()) {
+			if !c.opts.mapOpts.filterFuns.All(key, field.Interface()) {
 				continue
 			}
 			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
@@ -100,7 +100,7 @@ func (c *ValueConverter) jsonMapWithDepth(depth uint) *JsonMapConverter {
 		for iter.Next() {
 			iterK := iter.Key()
 			iterV := iter.Value()
-			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(iterK.Interface(), iterV.Interface()) {
+			if !c.opts.mapOpts.filterFuns.All(iterK.Interface(), iterV.Interface()) {
 				continue
 			}
 			strKey := New(iter.Key().Interface()).String().Value()
@@ -123,7 +123,7 @@ func (c *ValueConverter) jsonMapWithDepth(depth uint) *JsonMapConverter {
 			}
 
 			key := inV.Type().Field(i).Name
-			if c.opts.mapOpts.filterFunc != nil && !c.opts.mapOpts.filterFunc(key, field.Interface()) {
+			if !c.opts.mapOpts.filterFuns.All(key, field.Interface()) {
 				continue
 			}
 			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {

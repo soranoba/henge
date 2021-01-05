@@ -1,19 +1,29 @@
 package henge
 
-// ConverterOpts are options for the conversion.
-type ConverterOpts struct {
-	stringOpts
-	mapOpts
-}
+type (
+	// ConverterOpts are options for the conversion.
+	ConverterOpts struct {
+		stringOpts
+		mapOpts
+	}
+	stringOpts struct {
+		fmt  byte
+		prec int
+	}
+	mapOpts struct {
+		maxDepth   uint
+		filterFuns mapFilterFuns
+	}
+	mapFilterFuns []func(k interface{}, v interface{}) bool
+)
 
-type stringOpts struct {
-	fmt  byte
-	prec int
-}
-
-type mapOpts struct {
-	maxDepth   uint
-	filterFunc func(k interface{}, v interface{}) bool
+func (fs mapFilterFuns) All(k interface{}, v interface{}) bool {
+	for _, f := range fs {
+		if !f(k, v) {
+			return false
+		}
+	}
+	return true
 }
 
 func defaultConverterOpts() ConverterOpts {
@@ -23,7 +33,8 @@ func defaultConverterOpts() ConverterOpts {
 			prec: -1,
 		},
 		mapOpts: mapOpts{
-			maxDepth: ^uint(0),
+			maxDepth:   ^uint(0),
+			filterFuns: make(mapFilterFuns, 0),
 		},
 	}
 }
@@ -37,22 +48,22 @@ func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
 	}
 }
 
-// WithDepth is an option when converting to map.
+// WithMapMaxDepth is an option when converting to map.
 //
 // By default, all structs are converted to maps.
 // It can be used when converting only the top-level.
-func WithDepth(maxDepth uint) func(*ConverterOpts) {
+func WithMapMaxDepth(maxDepth uint) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.mapOpts.maxDepth = maxDepth
 	}
 }
 
-// WithFilter is an option when converting to map.
+// WithMapFilter is an option when converting to map.
 //
-// By default, values is copied even if it is nil.
-// You can use this option to prevent this.
-func WithFilter(cond func(k interface{}, v interface{}) bool) func(*ConverterOpts) {
+// If you specify multiple filters, it will be copied only if all filters return true.
+// By default, it copies everything.
+func WithMapFilter(cond func(k interface{}, v interface{}) bool) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
-		opt.mapOpts.filterFunc = cond
+		opt.mapOpts.filterFuns = append(opt.mapOpts.filterFuns, cond)
 	}
 }

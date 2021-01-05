@@ -39,7 +39,7 @@ func ExampleValueConverter_Map_Nested() {
 	}
 
 	in := In{A: 1, B: Nested1{X: "x", Y: 2, Nested2: Nested2{Z: 3}}}
-	m, err := New(in, WithDepth(1)).Map().Result()
+	m, err := New(in, WithMapMaxDepth(1)).Map().Result()
 	if err != nil {
 		fmt.Println(err)
 	} else {
