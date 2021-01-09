@@ -2,6 +2,7 @@ package tests
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -284,4 +285,53 @@ func TestStructConverter_MapField(t *testing.T) {
 		assert.Equal(t, "b", out.X[2])
 	}
 	assert.Nil(t, out.Y)
+}
+
+func TestStructConverter_Error(t *testing.T) {
+	type InV struct {
+		X struct {
+			Y string
+			Z int
+		}
+	}
+	type OutV struct {
+		X struct {
+			Y int
+		}
+	}
+	outV := OutV{}
+	err := henge.New(InV{X: struct {
+		Y string
+		Z int
+	}{Y: "aa"}}).Convert(&outV)
+	var convertError *henge.ConvertError
+	if assert.True(t, errors.As(err, &convertError)) {
+		assert.Equal(t, ".X.Y", convertError.Field)
+		assert.Equal(t, "aa", convertError.Value)
+		assert.Equal(t, reflect.TypeOf(string("")), convertError.SrcType)
+		assert.Equal(t, reflect.TypeOf(int(1)), convertError.DstType)
+	}
+
+	type InP struct {
+		X struct {
+			Y *string
+			Z *int
+		}
+	}
+	type OutP struct {
+		X struct {
+			Y int
+		}
+	}
+	outP := OutP{}
+	err = henge.New(InP{X: struct {
+		Y *string
+		Z *int
+	}{Y: henge.New("aa").StringPtr().Value()}}).Convert(&outP)
+	if assert.True(t, errors.As(err, &convertError)) {
+		assert.Equal(t, ".X.Y", convertError.Field)
+		assert.Equal(t, "aa", *(convertError.Value.(*string)))
+		assert.Equal(t, reflect.TypeOf((*string)(nil)), convertError.SrcType)
+		assert.Equal(t, reflect.TypeOf((int)(1)), convertError.DstType)
+	}
 }

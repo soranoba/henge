@@ -91,24 +91,23 @@ func (c *IntegerConverter) Ptr() *IntegerPtrConverter {
 // If the conversion fails, the method returns an error.
 func (c *IntegerConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
-	if outV.Kind() != reflect.Ptr {
+	if outV.Type().Kind() != reflect.Ptr {
 		panic("out must be ptr")
 	}
+	return c.convert(outV.Elem())
+}
 
+func (c *IntegerConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
-		return c.err
+		err := *(c.err.(*ConvertError))
+		err.DstType = outV.Type()
+		return &err
 	}
 	if c.isNil {
 		return nil
 	}
 
-	for outV.Kind() == reflect.Ptr {
-		if outV.IsNil() {
-			outV.Set(reflect.New(outV.Type().Elem()))
-		}
-		outV = outV.Elem()
-	}
-
+	elemOutV := toInitializedNonPtrValue(outV)
 	overflowErr := &ConvertError{
 		Field:   c.field,
 		SrcType: reflect.ValueOf(c.value).Type(),
@@ -117,31 +116,31 @@ func (c *IntegerConverter) Convert(out interface{}) error {
 		Err:     ErrOverflow,
 	}
 
-	switch outV.Kind() {
+	switch elemOutV.Kind() {
 	case reflect.Int:
 		if int64(int(c.value)) != c.value {
 			return overflowErr
 		}
-		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
+		elemOutV.Set(reflect.ValueOf(c.value).Convert(elemOutV.Type()))
 	case reflect.Int8:
 		if int64(int8(c.value)) != c.value {
 			return overflowErr
 		}
-		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
+		elemOutV.Set(reflect.ValueOf(c.value).Convert(elemOutV.Type()))
 	case reflect.Int16:
 		if int64(int16(c.value)) != c.value {
 			return overflowErr
 		}
-		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
+		elemOutV.Set(reflect.ValueOf(c.value).Convert(elemOutV.Type()))
 	case reflect.Int32:
 		if int64(int32(c.value)) != c.value {
 			return overflowErr
 		}
-		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
+		elemOutV.Set(reflect.ValueOf(c.value).Convert(elemOutV.Type()))
 	case reflect.Int64:
-		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
+		elemOutV.Set(reflect.ValueOf(c.value).Convert(elemOutV.Type()))
 	default:
-		return c.new(c.value, c.field).Convert(out)
+		return c.new(c.value, c.field).convert(outV)
 	}
 	return nil
 }

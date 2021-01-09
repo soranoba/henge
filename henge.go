@@ -106,54 +106,53 @@ func (c *ValueConverter) Model(t interface{}) *ValueConverter {
 		err = c.Convert(v.Interface())
 		value = v.Elem().Interface()
 	}
-
-	return &ValueConverter{
-		converter: c.converter,
-		value:     value,
-		err:       err,
-	}
+	return &ValueConverter{converter: c.converter, value: value, err: err}
 }
 
 // Convert converts the input to the out type and assigns it.
 // If the conversion fails, the method returns an error.
 func (c *ValueConverter) Convert(out interface{}) error {
-	outT := reflect.ValueOf(out).Type()
-	if outT.Kind() != reflect.Ptr {
+	outV := reflect.ValueOf(out)
+	if outV.Type().Kind() != reflect.Ptr {
 		panic("out must be ptr")
 	}
+	return c.convert(outV.Elem())
+}
 
+func (c *ValueConverter) convert(outV reflect.Value) error {
+	outT := outV.Type()
 	for outT.Kind() == reflect.Ptr {
 		outT = outT.Elem()
 	}
 
 	switch outT.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return c.Int().Convert(out)
+		return c.Int().convert(outV)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return c.Uint().Convert(out)
+		return c.Uint().convert(outV)
 	case reflect.Float32, reflect.Float64:
-		return c.Float().Convert(out)
+		return c.Float().convert(outV)
 	case reflect.Bool:
-		return c.Bool().Convert(out)
+		return c.Bool().convert(outV)
 	case reflect.String:
-		return c.String().Convert(out)
+		return c.String().convert(outV)
 	case reflect.Array, reflect.Slice:
-		return c.Slice().Convert(out)
+		return c.Slice().convert(outV)
 	case reflect.Map, reflect.Struct:
 		t := reflect.ValueOf(c.value).Type()
 		for t.Kind() == reflect.Ptr {
 			t = t.Elem()
 		}
 		if t.Kind() == reflect.Map {
-			return c.Map().Convert(out)
+			return c.Map().convert(outV)
 		}
-		return c.Struct().Convert(out)
+		return c.Struct().convert(outV)
 	case reflect.Interface:
-		outV := reflect.ValueOf(out)
 		for outV.Kind() == reflect.Ptr {
 			outV = outV.Elem()
 		}
 		outV.Set(reflect.ValueOf(c.value))
+		return nil
 	default:
 		var srcType reflect.Type
 		if reflect.ValueOf(c.value).IsValid() {
@@ -162,12 +161,11 @@ func (c *ValueConverter) Convert(out interface{}) error {
 		return &ConvertError{
 			Field:   c.field,
 			SrcType: srcType,
-			DstType: reflect.ValueOf(out).Type(),
+			DstType: outV.Type(),
 			Value:   c.value,
 			Err:     ErrUnsupportedType,
 		}
 	}
-	return nil
 }
 
 // Result returns the conversion result and error.
@@ -183,4 +181,14 @@ func (c *ValueConverter) Value() interface{} {
 // Error returns an error if the conversion fails.
 func (c *ValueConverter) Error() error {
 	return c.err
+}
+
+func toInitializedNonPtrValue(v reflect.Value) reflect.Value {
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		v = v.Elem()
+	}
+	return v
 }

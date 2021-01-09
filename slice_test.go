@@ -42,6 +42,6 @@ func ExampleValueConverter_Slice() {
 	// Output:
 	// [3]int{1, 2, 3} -> []string{"1", "2", "3"}
 	// []int{1, 2, 3} -> [2]string{"1", "2"}
-	// Failed to convert from string to int64: fields=[1], value="a", error=strconv.ParseInt: parsing "a": invalid syntax
+	// Failed to convert from string to int: fields=[1], value="a", error=strconv.ParseInt: parsing "a": invalid syntax
 	// []henge.In{henge.In{A:"123"}, henge.In{A:"234"}} -> []henge.Out{henge.Out{A:123}, henge.Out{A:234}}
 }

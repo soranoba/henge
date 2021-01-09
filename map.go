@@ -171,12 +171,17 @@ type MapConverter struct {
 // If the conversion fails, the method returns an error.
 func (c *MapConverter) Convert(out interface{}) error {
 	outV := reflect.ValueOf(out)
-	if outV.Kind() != reflect.Ptr {
+	if outV.Type().Kind() != reflect.Ptr {
 		panic("out must be ptr")
 	}
+	return c.convert(outV.Elem())
+}
 
+func (c *MapConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
-		return c.err
+		err := *(c.err.(*ConvertError))
+		err.DstType = outV.Type()
+		return &err
 	}
 	if c.isNil {
 		return nil
@@ -198,10 +203,10 @@ func (c *MapConverter) Convert(out interface{}) error {
 			keyV := reflect.New(outV.Type().Key())
 			valueV := reflect.New(outV.Type().Elem())
 			strKey := New(keyV).String().Value()
-			if err := c.new(k, c.field+"[]"+strKey).Convert(keyV.Interface()); err != nil {
+			if err := c.new(k, c.field+"[]"+strKey).convert(keyV); err != nil {
 				return err
 			}
-			if err := c.new(v, c.field+"["+strKey+"]").Convert(valueV.Interface()); err != nil {
+			if err := c.new(v, c.field+"["+strKey+"]").convert(valueV); err != nil {
 				return err
 			}
 			outV.SetMapIndex(keyV.Elem(), valueV.Elem())
@@ -235,10 +240,7 @@ func (c *MapConverter) Convert(out interface{}) error {
 				}
 
 				target := outV.FieldByIndex(outField.index)
-				if target.Kind() != reflect.Ptr {
-					target = target.Addr()
-				}
-				if err := c.new(value, c.field+"."+outField.name).Convert(target.Interface()); err != nil {
+				if err := c.new(value, c.field+"."+outField.name).convert(target); err != nil {
 					return err
 				}
 			}

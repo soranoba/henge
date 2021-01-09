@@ -19,6 +19,7 @@ func (c *ValueConverter) Struct() *StructConverter {
 	default:
 		err = ErrUnsupportedType
 	}
+
 	return &StructConverter{converter: c.converter, value: value, err: err}
 }
 
@@ -32,48 +33,59 @@ type StructConverter struct {
 // Convert converts the input to the out type and assigns it.
 // If the conversion fails, the method returns an error.
 func (c *StructConverter) Convert(out interface{}) error {
-	var (
-		err error
-	)
-
 	outV := reflect.ValueOf(out)
 	if outV.Kind() != reflect.Ptr {
 		panic("out must be ptr")
 	}
+	return c.convert(outV.Elem())
+}
+
+func (c *StructConverter) convert(outV reflect.Value) error {
+	var srcType reflect.Type
+	if reflect.ValueOf(c.value).IsValid() {
+		srcType = reflect.ValueOf(c.value).Type()
+	}
 
 	if c.err != nil {
-		return c.err
+		if convertErr, ok := c.err.(*ConvertError); ok {
+			err := *convertErr
+			err.DstType = outV.Type()
+			return &err
+		}
+		return &ConvertError{
+			Field:   c.field,
+			SrcType: srcType,
+			DstType: outV.Type(),
+			Value:   c.value,
+			Err:     c.err,
+		}
 	}
 	if c.isNil {
 		return nil
 	}
 
-	for outV.Kind() == reflect.Ptr {
-		if outV.IsNil() {
-			outV.Set(reflect.New(outV.Type().Elem()))
-		}
-		outV = outV.Elem()
-	}
+	var err error
+	elemOutV := toInitializedNonPtrValue(outV)
 
-	if beforeCallback, ok := outV.Addr().Interface().(BeforeCallback); ok {
+	if beforeCallback, ok := elemOutV.Addr().Interface().(BeforeCallback); ok {
 		if err = beforeCallback.BeforeConvert(c.value, &c.converter); err != nil {
 			goto failed
 		}
 	}
 
-	switch outV.Kind() {
+	switch elemOutV.Kind() {
 	case reflect.Struct:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
 
 		// NOTE: Types that are simply converted (it also copies private fields)
-		if inV.Type().ConvertibleTo(outV.Type()) {
-			outV.Set(inV.Convert(outV.Type()))
+		if inV.Type().ConvertibleTo(elemOutV.Type()) {
+			elemOutV.Set(inV.Convert(elemOutV.Type()))
 			break
 		}
 
 		inFields := getStructFields(inV.Type())
 	Loop:
-		for _, outField := range getStructFields(outV.Type()) {
+		for _, outField := range getStructFields(elemOutV.Type()) {
 			if outField.isIgnore() {
 				continue
 			}
@@ -99,7 +111,7 @@ func (c *StructConverter) Convert(out interface{}) error {
 				conv := c.new(v.Interface(), c.field+"."+outField.name)
 
 				// NOTE: initialized embedded field.
-				anchor := outV
+				anchor := elemOutV
 				for _, index := range outField.index {
 					v := anchor.Field(index)
 					if v.Kind() == reflect.Ptr {
@@ -120,30 +132,23 @@ func (c *StructConverter) Convert(out interface{}) error {
 					}
 				}
 
-				target := outV.FieldByIndex(outField.index)
-				if target.Kind() != reflect.Ptr {
-					target = target.Addr()
-				}
-				if err = conv.Convert(target.Interface()); err != nil {
+				target := elemOutV.FieldByIndex(outField.index)
+				if err = conv.convert(target); err != nil {
 					goto failed
 				}
 			}
 		}
 	default:
-		err = c.new(c.value, c.field).Convert(out)
+		err = c.new(c.value, c.field).convert(outV)
 	}
 
-	if afterCallback, ok := outV.Addr().Interface().(AfterCallback); ok {
+	if afterCallback, ok := elemOutV.Addr().Interface().(AfterCallback); ok {
 		err = afterCallback.AfterConvert(c.value, &c.converter)
 	}
 
 failed:
 	var convertError *ConvertError
 	if err != nil && !errors.As(err, &convertError) {
-		var srcType reflect.Type
-		if reflect.ValueOf(c.value).IsValid() {
-			srcType = reflect.ValueOf(c.value).Type()
-		}
 		err = &ConvertError{
 			Field:   c.field,
 			SrcType: srcType,

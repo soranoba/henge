@@ -66,26 +66,26 @@ func (c *BoolConverter) Convert(out interface{}) error {
 	if outV.Kind() != reflect.Ptr {
 		panic("out must be ptr")
 	}
+	return c.convert(outV.Elem())
+}
 
+func (c *BoolConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
-		return c.err
+		err := *(c.err.(*ConvertError))
+		err.DstType = outV.Type()
+		return &err
 	}
 	if c.isNil {
 		return nil
 	}
 
-	for outV.Kind() == reflect.Ptr {
-		if outV.IsNil() {
-			outV.Set(reflect.New(outV.Type().Elem()))
-		}
-		outV = outV.Elem()
-	}
+	elemOutV := toInitializedNonPtrValue(outV)
 
-	switch outV.Kind() {
+	switch elemOutV.Kind() {
 	case reflect.Bool:
-		outV.Set(reflect.ValueOf(c.value).Convert(outV.Type()))
+		elemOutV.Set(reflect.ValueOf(c.value).Convert(elemOutV.Type()))
 	default:
-		return c.new(c.value, c.field).Convert(out)
+		return c.new(c.value, c.field).Convert(outV)
 	}
 	return nil
 }

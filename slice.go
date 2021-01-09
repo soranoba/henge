@@ -60,21 +60,29 @@ func (c *SliceConverter) Convert(out interface{}) error {
 	if outV.Kind() != reflect.Ptr {
 		panic("out must be ptr")
 	}
+	return c.convert(outV.Elem())
+}
 
+func (c *SliceConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
-		return c.err
+		if convertErr, ok := c.err.(*ConvertError); ok {
+			err := *convertErr
+			err.DstType = outV.Type()
+			return &err
+		}
+		return &ConvertError{
+			Field:   c.field,
+			SrcType: reflect.ValueOf(c.value).Type(),
+			DstType: outV.Type(),
+			Value:   c.value,
+			Err:     c.err,
+		}
 	}
 	if c.isNil {
 		return nil
 	}
 
-	for outV.Kind() == reflect.Ptr {
-		if outV.IsNil() {
-			outV.Set(reflect.New(outV.Type().Elem()))
-		}
-		outV = outV.Elem()
-	}
-
+	elemOutV := toInitializedNonPtrValue(outV)
 	unsupportedTypeErr := &ConvertError{
 		Field:   c.field,
 		SrcType: reflect.ValueOf(c.value).Type(),
@@ -83,39 +91,39 @@ func (c *SliceConverter) Convert(out interface{}) error {
 		Err:     ErrUnsupportedType,
 	}
 
-	switch outV.Kind() {
+	switch elemOutV.Kind() {
 	case reflect.Array:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
 		if inV.Kind() != reflect.Array && inV.Kind() != reflect.Slice {
 			return unsupportedTypeErr
 		}
 
-		v := reflect.New(reflect.ArrayOf(outV.Len(), outV.Type().Elem())).Elem()
-		for i := 0; i < inV.Len() && i < outV.Len(); i++ {
-			elem := reflect.New(outV.Type().Elem())
+		v := reflect.New(reflect.ArrayOf(elemOutV.Len(), elemOutV.Type().Elem())).Elem()
+		for i := 0; i < inV.Len() && i < elemOutV.Len(); i++ {
+			elem := reflect.New(elemOutV.Type().Elem()).Elem()
 			fieldName := c.field + "[" + New(i).String().Value() + "]"
-			if err := c.new(inV.Index(i).Interface(), fieldName).Convert(elem.Interface()); err != nil {
+			if err := c.new(inV.Index(i).Interface(), fieldName).convert(elem); err != nil {
 				return err
 			}
-			v.Index(i).Set(elem.Elem())
+			v.Index(i).Set(elem)
 		}
-		outV.Set(v)
+		elemOutV.Set(v)
 	case reflect.Slice:
 		inV := reflect.Indirect(reflect.ValueOf(c.value))
 		if inV.Kind() != reflect.Array && inV.Kind() != reflect.Slice {
 			return unsupportedTypeErr
 		}
 
-		v := reflect.MakeSlice(reflect.SliceOf(outV.Type().Elem()), inV.Len(), inV.Len())
+		v := reflect.MakeSlice(reflect.SliceOf(elemOutV.Type().Elem()), inV.Len(), inV.Len())
 		for i := 0; i < inV.Len(); i++ {
-			elem := reflect.New(outV.Type().Elem())
+			elem := reflect.New(elemOutV.Type().Elem()).Elem()
 			fieldName := c.field + "[" + New(i).String().Value() + "]"
-			if err := c.new(inV.Index(i).Interface(), fieldName).Convert(elem.Interface()); err != nil {
+			if err := c.new(inV.Index(i).Interface(), fieldName).convert(elem); err != nil {
 				return err
 			}
-			v.Index(i).Set(elem.Elem())
+			v.Index(i).Set(elem)
 		}
-		outV.Set(v)
+		elemOutV.Set(v)
 	default:
 		return unsupportedTypeErr
 	}

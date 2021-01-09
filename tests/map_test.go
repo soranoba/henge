@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"errors"
+	"reflect"
 	"testing"
 	"time"
 
@@ -75,4 +77,28 @@ func TestMapConverter_ConvertPtr(t *testing.T) {
 	assert.NoError(t, henge.New(src).Map().Convert(&dst5))
 	assert.Equal(t, "1", henge.New(dst5["a"]).String().Value())
 	assert.Equal(t, "2", henge.New(dst5["b"]).String().Value())
+}
+
+func TestMapConverter_Error(t *testing.T) {
+	src := map[string]interface{}{
+		"A": 1,
+		"B": map[string]interface{}{
+			"C": henge.New("aa").StringPtr().Value(),
+		},
+	}
+	type Out struct {
+		A int
+		B struct {
+			C int
+		}
+	}
+	out := Out{}
+	err := henge.New(src).Convert(&out)
+	var convertError *henge.ConvertError
+	if assert.True(t, errors.As(err, &convertError)) {
+		assert.Equal(t, ".B.C", convertError.Field)
+		assert.Equal(t, "aa", *(convertError.Value.(*string)))
+		assert.Equal(t, reflect.TypeOf((*string)(nil)), convertError.SrcType)
+		assert.Equal(t, reflect.TypeOf(int(1)), convertError.DstType)
+	}
 }
