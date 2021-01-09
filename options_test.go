@@ -81,7 +81,7 @@ func ExampleWithMapFilter() {
 	// Multiple Filters:         map[]
 }
 
-func Example_isNil() {
+func ExampleIsNil() {
 	fmt.Printf("string: %v\n", isNil(""))
 	fmt.Printf("*string: %v\n", isNil((*string)(nil)))
 	fmt.Printf("nil: %v\n", isNil(nil))
@@ -94,7 +94,7 @@ func Example_isNil() {
 	// []string: true
 }
 
-func Example_isZero() {
+func ExampleIsZero() {
 	fmt.Printf("string: %v\n", isZero(""))
 	fmt.Printf("*string: %v\n", isZero((*string)(nil)))
 	fmt.Printf("nil: %v\n", isZero(nil))

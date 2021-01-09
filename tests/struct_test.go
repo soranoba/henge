@@ -183,6 +183,7 @@ func TestStructConverter_Callbacks(t *testing.T) {
 		Age:  25,
 	}
 
+	// NOTE: BeforeCallbackT converts only from User{} and returns an error otherwise.
 	out1 := BeforeCallbackT{}
 	assert.NoError(t, henge.New(user).Struct().Convert(&out1))
 	assert.Equal(t, user.Name, out1.Name)
@@ -190,10 +191,10 @@ func TestStructConverter_Callbacks(t *testing.T) {
 
 	out1 = BeforeCallbackT{}
 	assert.Error(t, henge.New(&user).Struct().Convert(&out1))
-
 	out1 = BeforeCallbackT{}
 	assert.Error(t, henge.New(struct{ Name string }{"Bob"}).Convert(&out1))
 
+	// NOTE: AfterCallbackT converts only from User{} and returns an error otherwise.
 	out2 := AfterCallbackT{}
 	conv := henge.New(user)
 	conv.InstanceSet("diff", 23)
@@ -203,9 +204,37 @@ func TestStructConverter_Callbacks(t *testing.T) {
 
 	out2 = AfterCallbackT{}
 	assert.Error(t, henge.New(&user).Struct().Convert(&out2))
-
 	out2 = AfterCallbackT{}
 	assert.Error(t, henge.New(struct{ Name string }{"Carol"}).Convert(&out2))
+}
+
+func TestStructConverter_Callbacks2(t *testing.T) {
+	user := User{
+		Name: "Alice",
+		Age:  25,
+	}
+
+	type InP struct {
+		User *User
+	}
+	type InV struct {
+		User User
+	}
+	type OutP struct {
+		User *BeforeCallbackT
+	}
+	type OutV struct {
+		User BeforeCallbackT
+	}
+
+	// NOTE: In the case of User{}, no error occurs, but in the case of *User{}, an error occurs.
+	outP := OutP{}
+	assert.Error(t, henge.New(InP{User: &user}).Convert(&outP))
+	assert.NoError(t, henge.New(InV{User: user}).Convert(&outP))
+
+	outV := OutV{}
+	assert.Error(t, henge.New(InP{User: &user}).Convert(&outV))
+	assert.NoError(t, henge.New(InV{User: user}).Convert(&outV))
 }
 
 func TestStructConverter_NilField(t *testing.T) {

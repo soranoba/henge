@@ -1,45 +1,11 @@
 package tests
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/soranoba/henge"
 	"github.com/stretchr/testify/assert"
 )
-
-func ExampleUsage() {
-	type UserRequest struct {
-		Name *string
-		Age  *int
-	}
-	type User struct {
-		Name string // *string to string
-		Age  string // *int to string
-	}
-
-	name := "Alice"
-	age := 30
-	var user User
-	if err := henge.New(UserRequest{Name: &name, Age: &age}).Convert(&user); err != nil {
-		return
-	}
-	fmt.Printf("%#v", user)
-
-	// Output:
-	// tests.User{Name:"Alice", Age:"30"}
-}
-
-func ExampleUsage_2() {
-	i, err := henge.New("1.25").Float().Int().Result()
-	if err != nil {
-		return
-	}
-	fmt.Println(i)
-
-	// Output:
-	// 1
-}
 
 func TestConverter_InstanceGet(t *testing.T) {
 	c := henge.New("some value")

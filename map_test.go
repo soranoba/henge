@@ -24,7 +24,7 @@ func ExampleValueConverter_Map() {
 	// map[string]int{"A":125, "B":25}
 }
 
-func ExampleValueConverter_Map_Nested() {
+func ExampleValueConverter_Map_nested() {
 	type Nested2 struct {
 		Z int
 	}

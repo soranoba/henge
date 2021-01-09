@@ -1,6 +1,6 @@
 // Package henge is a type conversion library for Golang.
 //
-// 変化 (Henge) means "appear in a different appearance" in Japanese.
+// 変化 (Henge) means "Appearing with a different figure." in Japanese.
 // Henge as the name implies can easily convert to different types.
 //
 // Links

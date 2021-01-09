@@ -7,8 +7,8 @@ func (c *ValueConverter) Map() *MapConverter {
 	return c.mapWithDepth(0)
 }
 
-// JsonMap converts the input to json map type.
-func (c *ValueConverter) JsonMap() *JsonMapConverter {
+// JSONMap converts the input to json map type.
+func (c *ValueConverter) JSONMap() *JSONMapConverter {
 	return c.jsonMapWithDepth(0)
 }
 
@@ -86,7 +86,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 	return &MapConverter{converter: c.converter, value: value, err: err}
 }
 
-func (c *ValueConverter) jsonMapWithDepth(depth uint) *JsonMapConverter {
+func (c *ValueConverter) jsonMapWithDepth(depth uint) *JSONMapConverter {
 	var (
 		value map[string]interface{}
 		err   error
@@ -155,9 +155,9 @@ func (c *ValueConverter) jsonMapWithDepth(depth uint) *JsonMapConverter {
 	}
 
 	if c.isNil {
-		return &JsonMapConverter{converter: c.converter, value: nil, err: err}
+		return &JSONMapConverter{converter: c.converter, value: nil, err: err}
 	}
-	return &JsonMapConverter{converter: c.converter, value: value, err: err}
+	return &JSONMapConverter{converter: c.converter, value: value, err: err}
 }
 
 // MapConverter is a converter that converts a map type to another type.
@@ -264,24 +264,24 @@ func (c *MapConverter) Error() error {
 	return c.err
 }
 
-// JsonMapConverter is a converter that converts a json map type to another type.
-type JsonMapConverter struct {
+// JSONMapConverter is a converter that converts a json map type to another type.
+type JSONMapConverter struct {
 	converter
 	value map[string]interface{}
 	err   error
 }
 
 // Result returns the conversion result and error.
-func (c *JsonMapConverter) Result() (map[string]interface{}, error) {
+func (c *JSONMapConverter) Result() (map[string]interface{}, error) {
 	return c.value, c.err
 }
 
 // Value returns the conversion result.
-func (c *JsonMapConverter) Value() map[string]interface{} {
+func (c *JSONMapConverter) Value() map[string]interface{} {
 	return c.value
 }
 
 // Error returns an error if the conversion fails.
-func (c *JsonMapConverter) Error() error {
+func (c *JSONMapConverter) Error() error {
 	return c.err
 }

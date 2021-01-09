@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJsonMapConverter(t *testing.T) {
+func TestJSONMapConverter(t *testing.T) {
 	type Internal struct {
 		Y int
 		Z string
@@ -17,7 +17,7 @@ func TestJsonMapConverter(t *testing.T) {
 		X string
 		I Internal
 	}
-	m, err := henge.New(In{X: "x", I: Internal{Y: 1, Z: "z"}}).JsonMap().Result()
+	m, err := henge.New(In{X: "x", I: Internal{Y: 1, Z: "z"}}).JSONMap().Result()
 	assert.NoError(t, err)
 	assert.Equal(t,
 		map[string]interface{}{"X": "x", "I": map[string]interface{}{"Y": 1, "Z": "z"}},

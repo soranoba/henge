@@ -5,6 +5,39 @@ import (
 	"math"
 )
 
+func Example_methodChain() {
+	i, err := New("1.25").Float().Int().Result()
+	if err != nil {
+		return
+	}
+	fmt.Println(i)
+
+	// Output:
+	// 1
+}
+
+func Example_struct() {
+	type UserRequest struct {
+		Name *string
+		Age  *int
+	}
+	type User struct {
+		Name string // *string to string
+		Age  string // *int to string
+	}
+
+	name := "Alice"
+	age := 30
+	var user User
+	if err := New(UserRequest{Name: &name, Age: &age}).Convert(&user); err != nil {
+		return
+	}
+	fmt.Printf("%#v\n", user)
+
+	// Output:
+	// henge.User{Name:"Alice", Age:"30"}
+}
+
 func ExampleNew() {
 	i, err := New("-12").Int().Result()
 	fmt.Printf("New(\"-12\").Int().Result() = (%#v, %#v)\n", i, err)

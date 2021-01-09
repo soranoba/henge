@@ -5,7 +5,7 @@
 
 Henge is a type conversion library for Golang.
 
-変化 (Henge) means "appear in a different appearance" in Japanese.<br>
+変化 (Henge) means "Appearing with a different figure." in Japanese.<br>
 Henge as the name implies can easily convert to different types.
 
 ## Overviews
@@ -19,17 +19,20 @@ Henge as the name implies can easily convert to different types.
 
 ### Easily converting pointer and non-pointer types.
 
-There are several ways to handle null in Golang world, but there are tradeoffs in all cases.
-
-Case 1. When it distinguish from Zero value by using structure like [sql.NullXX](https://golang.org/pkg/database/sql/), it will extra effort when using third-party library like [faker](https://github.com/bxcodec/faker) and [swag](https://github.com/swaggo/swag).<br>
-Case 2. When using pointers, it will extra effort of conversion to non-pointer type.<br>
-
-Henge aims to make the conversion easier for those who choose Case 2.
+In Golang world, there is a trade-off between pointer and non-pointer type, so it is used both as needed.<br>
+For the reason, it is often necessary to convert between pointers and non-pointers.<br>
+<br>
+When using Henge, it can easily convert even if it's a struct field.
 
 ### Easily converting to a different struct.
 
 There are many cases where the API server response is not the same as the DB record.<br>
 Henge is very useful if you just want to copy, but want to ignore some fields.
+
+### Easily create pointer-type values.
+
+If we try to assign a non-zero constant value to a String or Int pointer type, we need to write codes of multiple lines.<br>
+When using Henge, it easy to create pointer types while preserving the benefits of types.
 
 ## Installation
 
@@ -83,7 +86,8 @@ func main() {
 	i, err := henge.New("1.25").Float().Int().Result()
 	if err != nil {
 		return
-	}
+  }
+  // "1.25" -> 1.25 -> 1
 	fmt.Println(i)
 }
 ```
