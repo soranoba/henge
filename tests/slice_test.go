@@ -13,7 +13,7 @@ func TestSliceConverter_Nil(t *testing.T) {
 	assert.Nil(t, s)
 
 	s, err = henge.New((*int)(nil)).Slice().Result()
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from *int to []interface {}: fields=, value=(*int)(nil), error=unsupported type")
 	assert.Nil(t, s)
 }
 

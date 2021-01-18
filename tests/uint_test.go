@@ -22,7 +22,7 @@ func TestUnsignedIntegerConverter_Convert(t *testing.T) {
 func TestUnsignedIntegerConverter_Ptr(t *testing.T) {
 	ptr, err := henge.New(struct{}{}).Uint().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from struct {} to uint64: fields=, value=struct {}{}, error=unsupported type")
 
 	ptr, err = henge.New(124).Uint().Ptr().Result()
 	if assert.NotNil(t, ptr) {
@@ -37,5 +37,5 @@ func TestUnsignedIntegerConverter_Ptr(t *testing.T) {
 
 	ptr, err = henge.New((*struct{})(nil)).Uint().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from *struct {} to uint64: fields=, value=(*struct {})(nil), error=unsupported type")
 }

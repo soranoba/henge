@@ -32,8 +32,16 @@ func (e *ConvertError) Unwrap() error {
 }
 
 func (e *ConvertError) Error() string {
+	srcTypeString, dstTypeString := "nil", "nil"
+	if e.SrcType != nil {
+		srcTypeString = e.SrcType.String()
+	}
+	if e.DstType != nil {
+		dstTypeString = e.DstType.String()
+	}
+
 	return fmt.Sprintf(
 		"Failed to convert from %s to %s: fields=%s, value=%#v, error=%s",
-		e.SrcType.String(), e.DstType.String(), e.Field, e.Value, e.Err.Error(),
+		srcTypeString, dstTypeString, e.Field, e.Value, e.Err.Error(),
 	)
 }

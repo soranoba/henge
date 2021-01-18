@@ -52,17 +52,7 @@ func (c *ValueConverter) Int() *IntegerConverter {
 	}
 
 	if err != nil {
-		var srcType reflect.Type
-		if reflect.ValueOf(c.value).IsValid() {
-			srcType = reflect.ValueOf(c.value).Type()
-		}
-		err = &ConvertError{
-			Field:   c.field,
-			SrcType: srcType,
-			DstType: reflect.ValueOf((*int64)(nil)).Type().Elem(),
-			Value:   c.value,
-			Err:     err,
-		}
+		err = c.wrapConvertError(c.value, reflect.ValueOf((*int64)(nil)).Type().Elem(), err)
 	}
 	return &IntegerConverter{converter: c.converter, value: value, err: err}
 }
@@ -99,22 +89,14 @@ func (c *IntegerConverter) Convert(out interface{}) error {
 
 func (c *IntegerConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
-		err := *(c.err.(*ConvertError))
-		err.DstType = outV.Type()
-		return &err
+		return c.wrapConvertError(c.value, outV.Type(), c.err)
 	}
 	if c.isNil {
 		return nil
 	}
 
 	elemOutV := toInitializedNonPtrValue(outV)
-	overflowErr := &ConvertError{
-		Field:   c.field,
-		SrcType: reflect.ValueOf(c.value).Type(),
-		DstType: outV.Type(),
-		Value:   c.value,
-		Err:     ErrOverflow,
-	}
+	overflowErr := c.wrapConvertError(c.value, outV.Type(), ErrOverflow)
 
 	switch elemOutV.Kind() {
 	case reflect.Int:

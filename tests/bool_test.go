@@ -10,7 +10,7 @@ import (
 func TestBoolConverter_Ptr(t *testing.T) {
 	ptr, err := henge.New(nil).Bool().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from nil to bool: fields=, value=<nil>, error=invalid value")
 
 	ptr, err = henge.New("aaaa").Bool().Ptr().Result()
 	if assert.NotNil(t, ptr) {

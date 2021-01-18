@@ -10,7 +10,7 @@ import (
 func TestFloatConverter_Ptr(t *testing.T) {
 	ptr, err := henge.New(struct{}{}).Float().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from struct {} to float64: fields=, value=struct {}{}, error=unsupported type")
 
 	ptr, err = henge.New("24.5").Float().Ptr().Result()
 	if assert.NotNil(t, ptr) {
@@ -25,5 +25,5 @@ func TestFloatConverter_Ptr(t *testing.T) {
 
 	ptr, err = henge.New((*struct{})(nil)).Float().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from *struct {} to float64: fields=, value=(*struct {})(nil), error=unsupported type")
 }

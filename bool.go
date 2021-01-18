@@ -24,17 +24,7 @@ func (c *ValueConverter) Bool() *BoolConverter {
 	}
 
 	if err != nil {
-		var srcType reflect.Type
-		if reflect.ValueOf(c.value).IsValid() {
-			srcType = reflect.ValueOf(c.value).Type()
-		}
-		err = &ConvertError{
-			Field:   c.field,
-			SrcType: srcType,
-			DstType: reflect.ValueOf((*bool)(nil)).Type().Elem(),
-			Value:   c.value,
-			Err:     err,
-		}
+		err = c.wrapConvertError(c.value, reflect.ValueOf((*bool)(nil)).Type().Elem(), err)
 	}
 	return &BoolConverter{converter: c.converter, value: value, err: err}
 }
@@ -71,9 +61,7 @@ func (c *BoolConverter) Convert(out interface{}) error {
 
 func (c *BoolConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
-		err := *(c.err.(*ConvertError))
-		err.DstType = outV.Type()
-		return &err
+		return c.wrapConvertError(c.value, outV.Type(), c.err)
 	}
 	if c.isNil {
 		return nil

@@ -52,6 +52,29 @@ func (c *converter) InstanceSetValues(m map[string]interface{}) {
 	}
 }
 
+func (c *converter) wrapConvertError(src interface{}, dstType reflect.Type, err error) error {
+	if convertErr, ok := err.(*ConvertError); ok {
+		err := *convertErr
+		err.DstType = dstType
+		return &err
+	}
+	srcValue := src
+	var srcType reflect.Type
+	if reflect.ValueOf(srcValue).IsValid() {
+		srcType = reflect.ValueOf(srcValue).Type()
+		if c.isNil {
+			srcValue = reflect.New(srcType).Elem().Interface()
+		}
+	}
+	return &ConvertError{
+		Field:   c.field,
+		SrcType: srcType,
+		DstType: dstType,
+		Value:   srcValue,
+		Err:     err,
+	}
+}
+
 // ValueConverter is a converter that converts an interface type to another type.
 type ValueConverter struct {
 	converter
@@ -154,17 +177,7 @@ func (c *ValueConverter) convert(outV reflect.Value) error {
 		outV.Set(reflect.ValueOf(c.value))
 		return nil
 	default:
-		var srcType reflect.Type
-		if reflect.ValueOf(c.value).IsValid() {
-			srcType = reflect.ValueOf(c.value).Type()
-		}
-		return &ConvertError{
-			Field:   c.field,
-			SrcType: srcType,
-			DstType: outV.Type(),
-			Value:   c.value,
-			Err:     ErrUnsupportedType,
-		}
+		return c.wrapConvertError(c.value, outV.Type(), ErrUnsupportedType)
 	}
 }
 

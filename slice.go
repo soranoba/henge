@@ -20,6 +20,10 @@ func (c *ValueConverter) Slice() *SliceConverter {
 		err = ErrUnsupportedType
 	}
 
+	if err != nil {
+		err = c.wrapConvertError(c.value, reflect.ValueOf(value).Type(), err)
+	}
+
 	if c.isNil {
 		return &SliceConverter{converter: c.converter, value: nil, err: err}
 	}
@@ -65,31 +69,14 @@ func (c *SliceConverter) Convert(out interface{}) error {
 
 func (c *SliceConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
-		if convertErr, ok := c.err.(*ConvertError); ok {
-			err := *convertErr
-			err.DstType = outV.Type()
-			return &err
-		}
-		return &ConvertError{
-			Field:   c.field,
-			SrcType: reflect.ValueOf(c.value).Type(),
-			DstType: outV.Type(),
-			Value:   c.value,
-			Err:     c.err,
-		}
+		return c.wrapConvertError(c.value, outV.Type(), c.err)
 	}
 	if c.isNil {
 		return nil
 	}
 
 	elemOutV := toInitializedNonPtrValue(outV)
-	unsupportedTypeErr := &ConvertError{
-		Field:   c.field,
-		SrcType: reflect.ValueOf(c.value).Type(),
-		DstType: outV.Type(),
-		Value:   c.value,
-		Err:     ErrUnsupportedType,
-	}
+	unsupportedTypeErr := c.wrapConvertError(c.value, outV.Type(), ErrUnsupportedType)
 
 	switch elemOutV.Kind() {
 	case reflect.Array:
