@@ -22,7 +22,7 @@ func TestStringConverter_Convert(t *testing.T) {
 func TestStringConverter_Ptr(t *testing.T) {
 	ptr, err := henge.New(struct{}{}).String().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from struct {} to string: fields=, value=struct {}{}, error=unsupported type")
 
 	ptr, err = henge.New(1).String().Ptr().Result()
 	if assert.NotNil(t, ptr) {
@@ -37,5 +37,5 @@ func TestStringConverter_Ptr(t *testing.T) {
 
 	ptr, err = henge.New((*struct{})(nil)).String().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from *struct {} to string: fields=, value=(*struct {})(nil), error=unsupported type")
 }

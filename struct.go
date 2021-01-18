@@ -20,6 +20,9 @@ func (c *ValueConverter) Struct() *StructConverter {
 		err = ErrUnsupportedType
 	}
 
+	if err != nil {
+		err = c.wrapConvertError(c.value, reflect.ValueOf((*uint64)(nil)).Type().Elem(), err)
+	}
 	return &StructConverter{converter: c.converter, value: value, err: err}
 }
 
@@ -41,24 +44,8 @@ func (c *StructConverter) Convert(out interface{}) error {
 }
 
 func (c *StructConverter) convert(outV reflect.Value) error {
-	var srcType reflect.Type
-	if reflect.ValueOf(c.value).IsValid() {
-		srcType = reflect.ValueOf(c.value).Type()
-	}
-
 	if c.err != nil {
-		if convertErr, ok := c.err.(*ConvertError); ok {
-			err := *convertErr
-			err.DstType = outV.Type()
-			return &err
-		}
-		return &ConvertError{
-			Field:   c.field,
-			SrcType: srcType,
-			DstType: outV.Type(),
-			Value:   c.value,
-			Err:     c.err,
-		}
+		return c.wrapConvertError(c.value, outV.Type(), c.err)
 	}
 	if c.isNil {
 		return nil
@@ -149,13 +136,7 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 failed:
 	var convertError *ConvertError
 	if err != nil && !errors.As(err, &convertError) {
-		err = &ConvertError{
-			Field:   c.field,
-			SrcType: srcType,
-			DstType: outV.Type(),
-			Value:   c.value,
-			Err:     err,
-		}
+		err = c.wrapConvertError(c.value, outV.Type(), err)
 	}
 	return err
 }

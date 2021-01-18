@@ -10,7 +10,7 @@ import (
 func TestIntegerConverterPtr(t *testing.T) {
 	ptr, err := henge.New(struct{}{}).Int().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from struct {} to int64: fields=, value=struct {}{}, error=unsupported type")
 
 	ptr, err = henge.New("24").Int().Ptr().Result()
 	if assert.NotNil(t, ptr) {
@@ -25,5 +25,5 @@ func TestIntegerConverterPtr(t *testing.T) {
 
 	ptr, err = henge.New((*struct{})(nil)).Int().Ptr().Result()
 	assert.Nil(t, ptr)
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from *struct {} to int64: fields=, value=(*struct {})(nil), error=unsupported type")
 }

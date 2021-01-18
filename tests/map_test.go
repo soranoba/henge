@@ -44,7 +44,7 @@ func TestMapConverter_Nil(t *testing.T) {
 	assert.Nil(t, m)
 
 	m, err = henge.New((*int)(nil)).Map().Result()
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from *int to map[interface {}]interface {}: fields=, value=(*int)(nil), error=unsupported type")
 	assert.Nil(t, m)
 }
 

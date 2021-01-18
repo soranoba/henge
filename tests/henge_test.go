@@ -69,10 +69,10 @@ func TestValueConverter_Model(t *testing.T) {
 
 	// Case. Conversion fails
 	v, err = henge.New(In{X: "125"}).Model("").Result()
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from tests.In to string: fields=, value=tests.In{X:\"125\"}, error=unsupported type")
 	assert.Equal(t, "", v)
 
 	v, err = henge.New(In{X: "125"}).Model((*string)(nil)).Result()
-	assert.Error(t, err)
+	assert.EqualError(t, err, "Failed to convert from tests.In to *string: fields=, value=tests.In{X:\"125\"}, error=unsupported type")
 	assert.Nil(t, v)
 }

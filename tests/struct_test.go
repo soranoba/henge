@@ -148,7 +148,11 @@ func TestStructConverter_Nil(t *testing.T) {
 	assert.NoError(t, henge.New((*struct{})(nil)).Struct().Convert(&out))
 	assert.Nil(t, out)
 
-	assert.Error(t, henge.New((*int)(nil)).Struct().Convert(&out))
+	assert.EqualError(
+		t,
+		henge.New((*int)(nil)).Struct().Convert(&out),
+		"Failed to convert from *int to *struct {}: fields=, value=(*int)(nil), error=unsupported type",
+	)
 	assert.Nil(t, out)
 }
 
@@ -191,9 +195,17 @@ func TestStructConverter_Callbacks(t *testing.T) {
 	assert.Equal(t, user.Age, out1.Age)
 
 	out1 = BeforeCallbackT{}
-	assert.Error(t, henge.New(&user).Struct().Convert(&out1))
+	assert.EqualError(
+		t,
+		henge.New(&user).Struct().Convert(&out1),
+		"Failed to convert from *tests.User to tests.BeforeCallbackT: fields=, value=&tests.User{Name:\"Alice\", Age:25}, error=failed",
+	)
 	out1 = BeforeCallbackT{}
-	assert.Error(t, henge.New(struct{ Name string }{"Bob"}).Convert(&out1))
+	assert.EqualError(
+		t,
+		henge.New(struct{ Name string }{"Bob"}).Convert(&out1),
+		"Failed to convert from struct { Name string } to tests.BeforeCallbackT: fields=, value=struct { Name string }{Name:\"Bob\"}, error=failed",
+	)
 
 	// NOTE: AfterCallbackT converts only from User{} and returns an error otherwise.
 	out2 := AfterCallbackT{}
@@ -204,9 +216,17 @@ func TestStructConverter_Callbacks(t *testing.T) {
 	assert.Equal(t, 48, out2.Age)
 
 	out2 = AfterCallbackT{}
-	assert.Error(t, henge.New(&user).Struct().Convert(&out2))
+	assert.EqualError(
+		t,
+		henge.New(&user).Struct().Convert(&out2),
+		"Failed to convert from *tests.User to tests.AfterCallbackT: fields=, value=&tests.User{Name:\"Alice\", Age:25}, error=failed",
+	)
 	out2 = AfterCallbackT{}
-	assert.Error(t, henge.New(struct{ Name string }{"Carol"}).Convert(&out2))
+	assert.EqualError(
+		t,
+		henge.New(struct{ Name string }{"Carol"}).Convert(&out2),
+		"Failed to convert from struct { Name string } to tests.AfterCallbackT: fields=, value=struct { Name string }{Name:\"Carol\"}, error=failed",
+	)
 }
 
 func TestStructConverter_Callbacks2(t *testing.T) {
@@ -230,11 +250,19 @@ func TestStructConverter_Callbacks2(t *testing.T) {
 
 	// NOTE: In the case of User{}, no error occurs, but in the case of *User{}, an error occurs.
 	outP := OutP{}
-	assert.Error(t, henge.New(InP{User: &user}).Convert(&outP))
+	assert.EqualError(
+		t,
+		henge.New(InP{User: &user}).Convert(&outP),
+		"Failed to convert from *tests.User to *tests.BeforeCallbackT: fields=.User, value=&tests.User{Name:\"Alice\", Age:25}, error=failed",
+	)
 	assert.NoError(t, henge.New(InV{User: user}).Convert(&outP))
 
 	outV := OutV{}
-	assert.Error(t, henge.New(InP{User: &user}).Convert(&outV))
+	assert.EqualError(
+		t,
+		henge.New(InP{User: &user}).Convert(&outV),
+		"Failed to convert from *tests.User to tests.BeforeCallbackT: fields=.User, value=&tests.User{Name:\"Alice\", Age:25}, error=failed",
+	)
 	assert.NoError(t, henge.New(InV{User: user}).Convert(&outV))
 }
 
