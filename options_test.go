@@ -2,6 +2,7 @@ package henge
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 )
 
@@ -18,6 +19,38 @@ func ExampleWithFloatFormat() {
 	// Output:
 	// Default:                 0.0125
 	// WithFloatFormat('e', 2): 1.25e-02
+}
+
+func ExampleWithRoundingFunc() {
+	fmt.Println("int")
+	fmt.Printf(
+		"Default:                     %v\n",
+		New(1.25).Int().Value(),
+	)
+	fmt.Printf(
+		"WithRoundingFunc(math.Ceil): %v\n",
+		New(1.25, WithRoundingFunc(math.Ceil)).Int().Value(),
+	)
+	fmt.Println()
+
+	fmt.Println("uint")
+	fmt.Printf(
+		"Default:                     %v\n",
+		New(1.25).Uint().Value(),
+	)
+	fmt.Printf(
+		"WithRoundingFunc(math.Ceil): %v\n",
+		New(1.25, WithRoundingFunc(math.Ceil)).Uint().Value(),
+	)
+
+	// Output:
+	// int
+	// Default:                     1
+	// WithRoundingFunc(math.Ceil): 2
+	//
+	// uint
+	// Default:                     1
+	// WithRoundingFunc(math.Ceil): 2
 }
 
 func ExampleWithMapMaxDepth() {

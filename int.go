@@ -32,7 +32,7 @@ func (c *ValueConverter) Int() *IntegerConverter {
 		case reflect.Float32, reflect.Float64:
 			var f float64
 			f = inV.Convert(reflect.ValueOf(f).Type()).Interface().(float64)
-			f = math.Floor(f)
+			f = c.opts.numOpts.roundingFunc(f)
 			if f > math.MaxInt64 || f < math.MinInt64 || ((f > 0) != (int64(f) > 0)) {
 				err = ErrOverflow
 			} else {

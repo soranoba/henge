@@ -1,12 +1,25 @@
 package henge
 
-import "reflect"
+import (
+	"math"
+	"reflect"
+)
 
 type (
 	// ConverterOpts are options for the conversion.
 	ConverterOpts struct {
+		numOpts
 		stringOpts
 		mapOpts
+	}
+	// RoundingFunc is a function that rounds from float to nearest integer.
+	// e.g. math.Floor
+	RoundingFunc func(float64) float64
+)
+
+type (
+	numOpts struct {
+		roundingFunc RoundingFunc
 	}
 	stringOpts struct {
 		fmt  byte
@@ -30,6 +43,9 @@ func (fs mapFilterFuns) All(k interface{}, v interface{}) bool {
 
 func defaultConverterOpts() ConverterOpts {
 	return ConverterOpts{
+		numOpts: numOpts{
+			roundingFunc: math.Floor,
+		},
 		stringOpts: stringOpts{
 			fmt:  'f',
 			prec: -1,
@@ -47,6 +63,15 @@ func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.stringOpts.fmt = fmt
 		opt.stringOpts.prec = prec
+	}
+}
+
+// WithRoundingFunc is an option when converting from float to integer (or unsigned integer).
+// It specify the rounding method from float to nearest integer.
+// By default, it use math.Floor.
+func WithRoundingFunc(f RoundingFunc) func(*ConverterOpts) {
+	return func(opt *ConverterOpts) {
+		opt.numOpts.roundingFunc = f
 	}
 }
 
