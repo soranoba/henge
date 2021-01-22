@@ -86,8 +86,8 @@ func main() {
 	i, err := henge.New("1.25").Float().Int().Result()
 	if err != nil {
 		return
-  }
-  // "1.25" -> 1.25 -> 1
+	}
+	// "1.25" -> 1.25 -> 1
 	fmt.Println(i)
 }
 ```
