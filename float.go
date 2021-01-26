@@ -37,8 +37,14 @@ func (c *ValueConverter) Float() *FloatConverter {
 	return &FloatConverter{converter: c.converter, value: value, err: err}
 }
 
-// FloatrPtr converts the input to pointer of float type.
+// FloatrPtr is a deprecated method.
+// Please use FloatPtr.
 func (c *ValueConverter) FloatrPtr() *FloatPtrConverter {
+	return c.Float().Ptr()
+}
+
+// FloatPtr converts the input to pointer of float type.
+func (c *ValueConverter) FloatPtr() *FloatPtrConverter {
 	return c.Float().Ptr()
 }
 
