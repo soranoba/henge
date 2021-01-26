@@ -20,6 +20,11 @@ func ToFloat(i interface{}, fs ...func(*ConverterOpts)) float64 {
 	return New(i, fs...).Float().Value()
 }
 
+// ToBool is equiv to New(i, fs...).Bool().Value()
+func ToBool(i interface{}, fs ...func(*ConverterOpts)) bool {
+	return New(i, fs...).Bool().Value()
+}
+
 // ToStringPtr is equiv to New(i, fs...).StringPtr().Value()
 func ToStringPtr(i interface{}, fs ...func(*ConverterOpts)) *string {
 	return New(i, fs...).StringPtr().Value()
@@ -38,4 +43,9 @@ func ToUintPtr(i interface{}, fs ...func(*ConverterOpts)) *uint64 {
 // ToFloatPtr is equiv to New(i, fs...).FloatPtr().Value()
 func ToFloatPtr(i interface{}, fs ...func(*ConverterOpts)) *float64 {
 	return New(i, fs...).FloatPtr().Value()
+}
+
+// ToBoolPtr is equiv to New(i, fs...).BoolPtr().Value()
+func ToBoolPtr(i interface{}, fs ...func(*ConverterOpts)) *bool {
+	return New(i, fs...).BoolPtr().Value()
 }
