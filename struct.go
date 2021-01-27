@@ -99,16 +99,20 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 
 				// NOTE: initialized embedded field.
 				anchor := elemOutV
-				for _, index := range outField.index {
+				for i, index := range outField.index {
 					v := anchor.Field(index)
 					if v.Kind() == reflect.Ptr {
 						if !v.CanSet() {
 							continue Loop
 						}
 						if conv.isNil {
-							// NOTE: set nil.
-							v.Set(reflect.New(v.Type()).Elem())
-							continue Loop
+							if i == len(outField.index)-1 { // last index only.
+								// NOTE: set nil.
+								v.Set(reflect.New(v.Type()).Elem())
+								continue Loop
+							} else if v.IsNil() {
+								continue Loop
+							}
 						}
 						if v.IsNil() {
 							v.Set(reflect.New(v.Type().Elem()))

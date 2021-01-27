@@ -54,6 +54,39 @@ func TestStructConverter_EmbeddedField(t *testing.T) {
 	assert.Equal(t, "b", in.B)
 }
 
+func TestStructConverter_EmbeddedField2(t *testing.T) {
+	type In struct {
+		A *string
+		B *string
+		C *string
+	}
+	type Embedded2 struct {
+		A string
+		C string
+	}
+	type Embedded1 struct {
+		*Embedded2
+		B string
+	}
+	type Out struct {
+		*Embedded1
+		A *string
+	}
+
+	in := In{A: henge.ToStringPtr("a"), B: nil, C: henge.ToStringPtr("c")}
+	out := Out{}
+	if err := henge.New(in).Struct().Convert(&out); err != nil {
+		assert.NoError(t, err)
+	}
+	if assert.NotNil(t, out.Embedded1) && assert.NotNil(t, out.Embedded2) {
+		// NOTE: If the names conflict, it will assign to everything possible.
+		assert.Equal(t, "a", henge.ToString(out.A))
+		assert.Equal(t, "a", out.Embedded1.Embedded2.A)
+		assert.Equal(t, "", out.B)
+		assert.Equal(t, "c", out.C)
+	}
+}
+
 func TestStructConverter_EmbeddedPtrField(t *testing.T) {
 	type In struct {
 		A string
@@ -270,6 +303,9 @@ func TestStructConverter_NilField(t *testing.T) {
 	type Embedded struct {
 		S *string
 	}
+	type Embeded2 struct {
+		S *string
+	}
 	type In struct {
 		A *string
 		B *uint
@@ -281,20 +317,23 @@ func TestStructConverter_NilField(t *testing.T) {
 	}
 	type Out struct {
 		*Embedded
+		*Embeded2
 		A *string
 		B *uint
 		C *int
 		D *bool
 		E *float64
 	}
-	var out Out
+	out := Out{A: henge.ToStringPtr("a"), Embedded: &Embedded{S: henge.ToStringPtr("s")}}
 	assert.NoError(t, henge.New(&In{}).Convert(&out))
-	assert.Nil(t, out.A)
+	assert.Nil(t, out.A) // overwrite to nil
 	assert.Nil(t, out.B)
 	assert.Nil(t, out.C)
 	assert.Nil(t, out.D)
 	assert.Nil(t, out.E)
-	assert.Nil(t, out.Embedded)
+	assert.NotNil(t, out.Embedded) // not overwrite at the middle path
+	assert.Nil(t, out.Embedded.S)  // overwrite to nil
+	assert.Nil(t, out.Embeded2)    // keep nil
 }
 
 func TestStructConverter_MapField(t *testing.T) {
