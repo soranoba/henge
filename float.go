@@ -5,6 +5,26 @@ import (
 	"strconv"
 )
 
+type (
+	// FloatConverter is a converter that converts a float type to another type.
+	FloatConverter struct {
+		*baseConverter
+		value float64
+		err   error
+	}
+
+	// FloatPtrConverter is a converter that converts a pointer of float type to another type.
+	FloatPtrConverter struct {
+		*baseConverter
+		value *float64
+		err   error
+	}
+)
+
+// --------------------------------------------------------------------- //
+// ValueConverter
+// --------------------------------------------------------------------- //
+
 // Float converts the input to float type.
 func (c *ValueConverter) Float() *FloatConverter {
 	var (
@@ -42,12 +62,9 @@ func (c *ValueConverter) FloatPtr() *FloatPtrConverter {
 	return c.Float().Ptr()
 }
 
-// FloatConverter is a converter that converts a float type to another type.
-type FloatConverter struct {
-	*baseConverter
-	value float64
-	err   error
-}
+// --------------------------------------------------------------------- //
+// FloatConverter
+// --------------------------------------------------------------------- //
 
 // Int converts the input to int type.
 func (c *FloatConverter) Int() *IntegerConverter {
@@ -127,12 +144,9 @@ func (c *FloatConverter) Error() error {
 	return c.err
 }
 
-// FloatPtrConverter is a converter that converts a pointer of float type to another type.
-type FloatPtrConverter struct {
-	*baseConverter
-	value *float64
-	err   error
-}
+// --------------------------------------------------------------------- //
+// FloatPtrConverter
+// --------------------------------------------------------------------- //
 
 // Result returns the conversion result and error.
 func (c *FloatPtrConverter) Result() (*float64, error) {

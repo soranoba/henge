@@ -5,6 +5,19 @@ import (
 	"reflect"
 )
 
+type (
+	// StructConverter is a converter that converts a struct type to another type.
+	StructConverter struct {
+		*baseConverter
+		value interface{}
+		err   error
+	}
+)
+
+// --------------------------------------------------------------------- //
+// ValueConverter
+// --------------------------------------------------------------------- //
+
 // Struct converts the input to struct type.
 func (c *ValueConverter) Struct() *StructConverter {
 	var (
@@ -26,12 +39,9 @@ func (c *ValueConverter) Struct() *StructConverter {
 	return &StructConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
-// StructConverter is a converter that converts a struct type to another type.
-type StructConverter struct {
-	*baseConverter
-	value interface{}
-	err   error
-}
+// --------------------------------------------------------------------- //
+// StructConverter
+// --------------------------------------------------------------------- //
 
 // Convert converts the input to the out type and assigns it.
 // If the conversion fails, the method returns an error.

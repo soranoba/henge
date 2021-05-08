@@ -2,6 +2,7 @@ package tests
 
 import (
 	"github.com/soranoba/henge"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -15,4 +16,10 @@ func TestJSONArrayConverter_interface(t *testing.T) {
 
 func TestJSONObjectConverter_interface(t *testing.T) {
 	var _ henge.Converter = henge.New(nil).JSONObject()
+}
+
+func TestJSONValueConverter_nil(t *testing.T) {
+	val, err := henge.New(nil).JSONValue().Result()
+	assert.Nil(t, val)
+	assert.NoError(t, err)
 }

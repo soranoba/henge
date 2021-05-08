@@ -4,6 +4,26 @@ import (
 	"reflect"
 )
 
+type (
+	// BoolConverter is a converter that converts a bool type to another type.
+	BoolConverter struct {
+		*baseConverter
+		value bool
+		err   error
+	}
+
+	// BoolPtrConverter is a converter that converts a pointer of bool type to another type.
+	BoolPtrConverter struct {
+		*baseConverter
+		value *bool
+		err   error
+	}
+)
+
+// --------------------------------------------------------------------- //
+// ValueConverter
+// --------------------------------------------------------------------- //
+
 // Bool converts the input to bool type.
 func (c *ValueConverter) Bool() *BoolConverter {
 	var (
@@ -34,12 +54,9 @@ func (c *ValueConverter) BoolPtr() *BoolPtrConverter {
 	return c.Bool().Ptr()
 }
 
-// BoolConverter is a converter that converts a bool type to another type.
-type BoolConverter struct {
-	*baseConverter
-	value bool
-	err   error
-}
+// --------------------------------------------------------------------- //
+// BoolConverter
+// --------------------------------------------------------------------- //
 
 // Ptr converts the input to ptr type.
 func (c *BoolConverter) Ptr() *BoolPtrConverter {
@@ -98,12 +115,9 @@ func (c *BoolConverter) Error() error {
 	return c.err
 }
 
-// BoolPtrConverter is a converter that converts a pointer of bool type to another type.
-type BoolPtrConverter struct {
-	*baseConverter
-	value *bool
-	err   error
-}
+// --------------------------------------------------------------------- //
+// BoolPtrConverter
+// --------------------------------------------------------------------- //
 
 // Result returns the conversion result and error.
 func (c *BoolPtrConverter) Result() (*bool, error) {

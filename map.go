@@ -2,6 +2,15 @@ package henge
 
 import "reflect"
 
+type (
+	// MapConverter is a converter that converts a map type to another type.
+	MapConverter struct {
+		*baseConverter
+		value reflect.Value
+		err   error
+	}
+)
+
 // Map converts the input to map type.
 func (c *ValueConverter) Map() *MapConverter {
 	return c.mapWithDepth(0)
@@ -90,13 +99,6 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 	}
 
 	return &MapConverter{baseConverter: c.baseConverter, value: value, err: err}
-}
-
-// MapConverter is a converter that converts a map type to another type.
-type MapConverter struct {
-	*baseConverter
-	value reflect.Value
-	err   error
 }
 
 // Convert converts the input to the out type and assigns it.

@@ -3,6 +3,25 @@
 // 変化 (Henge) means "Appearing with a different figure." in Japanese.
 // Henge as the name implies can easily convert to different types.
 //
+// Usage
+//
+// Package henge has three conversion methods.
+//
+// 1. Methods having prefix with To. (e.g. ToInt). These are syntactic sugar. It often used when it can be converted reliably.
+//
+//   henge.ToInt("1")
+//
+// 2. Starting from New and continue to other methods using method chain.
+//
+//   value, err := henge.New("1").Int().Result()
+//
+// 3. Using Convert method, it can convert to any type.
+//
+//   in := map[interface{}]interface{}{"a":1,"b":2}
+//
+//   var out map[string]interface{}
+//   henge.New(in).Convert(&out)
+//
 // Links
 //
 // Source code: https://github.com/soranoba/henge

@@ -5,6 +5,26 @@ import (
 	"strconv"
 )
 
+type (
+	// StringConverter is a converter that converts a string type to another type.
+	StringConverter struct {
+		*baseConverter
+		value string
+		err   error
+	}
+
+	// StringPtrConverter is a converter that converts a pointer of string type to another type.
+	StringPtrConverter struct {
+		*baseConverter
+		value *string
+		err   error
+	}
+)
+
+// --------------------------------------------------------------------- //
+// ValueConverter
+// --------------------------------------------------------------------- //
+
 // String converts the input to string type.
 func (c *ValueConverter) String() *StringConverter {
 	var (
@@ -57,12 +77,9 @@ func (c *ValueConverter) StringPtr() *StringPtrConverter {
 	return c.String().Ptr()
 }
 
-// StringConverter is a converter that converts a string type to another type.
-type StringConverter struct {
-	*baseConverter
-	value string
-	err   error
-}
+// --------------------------------------------------------------------- //
+// StringConverter
+// --------------------------------------------------------------------- //
 
 // Ptr converts the input to ptr type.
 func (c *StringConverter) Ptr() *StringPtrConverter {
@@ -121,12 +138,9 @@ func (c *StringConverter) Error() error {
 	return c.err
 }
 
-// StringPtrConverter is a converter that converts a pointer of string type to another type.
-type StringPtrConverter struct {
-	*baseConverter
-	value *string
-	err   error
-}
+// --------------------------------------------------------------------- //
+// StringPtrConverter
+// --------------------------------------------------------------------- //
 
 // Result returns the conversion result and error.
 func (c *StringPtrConverter) Result() (*string, error) {

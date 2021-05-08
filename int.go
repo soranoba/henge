@@ -6,6 +6,26 @@ import (
 	"strconv"
 )
 
+type (
+	// IntegerConverter is a converter that converts an integer type to another type.
+	IntegerConverter struct {
+		*baseConverter
+		value int64
+		err   error
+	}
+
+	// IntegerPtrConverter is a converter that converts a pointer of integer type to another type.
+	IntegerPtrConverter struct {
+		*baseConverter
+		value *int64
+		err   error
+	}
+)
+
+// --------------------------------------------------------------------- //
+// ValueConverter
+// --------------------------------------------------------------------- //
+
 // Int converts the input to int type.
 func (c *ValueConverter) Int() *IntegerConverter {
 	var (
@@ -62,12 +82,9 @@ func (c *ValueConverter) IntPtr() *IntegerPtrConverter {
 	return c.Int().Ptr()
 }
 
-// IntegerConverter is a converter that converts an integer type to another type.
-type IntegerConverter struct {
-	*baseConverter
-	value int64
-	err   error
-}
+// --------------------------------------------------------------------- //
+// IntegerConverter
+// --------------------------------------------------------------------- //
 
 // Ptr converts the input to ptr type.
 func (c *IntegerConverter) Ptr() *IntegerPtrConverter {
@@ -147,12 +164,9 @@ func (c *IntegerConverter) Error() error {
 	return c.err
 }
 
-// IntegerPtrConverter is a converter that converts a pointer of integer type to another type.
-type IntegerPtrConverter struct {
-	*baseConverter
-	value *int64
-	err   error
-}
+// --------------------------------------------------------------------- //
+// IntegerPtrConverter
+// --------------------------------------------------------------------- //
 
 // Result returns the conversion result and error.
 func (c *IntegerPtrConverter) Result() (*int64, error) {
