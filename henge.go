@@ -31,6 +31,7 @@ type (
 		Error() error
 	}
 
+	// baseConverter is a struct inherited by each Converter and has common functions.
 	baseConverter struct {
 		isNil   bool
 		field   string
@@ -47,12 +48,12 @@ func (c *baseConverter) new(i interface{}, fieldName string) *ValueConverter {
 	return newConverter
 }
 
-// Get returns the value saved using InstanceSet.
+// Get returns the value saved using Set.
 func (c *baseConverter) Get(key string) interface{} {
 	return c.storage[key]
 }
 
-// Set saves the value by specifying the key.
+// Set saves the value on the key.
 func (c *baseConverter) Set(key string, value interface{}) {
 	c.storage[key] = value
 }

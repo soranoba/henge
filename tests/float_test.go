@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFloatConverter(t *testing.T) {
+func TestFloatConverter_interface(t *testing.T) {
 	var _ henge.Converter = henge.New(nil).Float()
 }
 
@@ -30,4 +30,8 @@ func TestFloatConverter_Ptr(t *testing.T) {
 	ptr, err = henge.New((*struct{})(nil)).Float().Ptr().Result()
 	assert.Nil(t, ptr)
 	assert.EqualError(t, err, "Failed to convert from *struct {} to float64: fields=, value=(*struct {})(nil), error=unsupported type")
+}
+
+func TestFloatPtrConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).FloatPtr()
 }

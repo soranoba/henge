@@ -7,7 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestIntegerConverterPtr(t *testing.T) {
+func TestIntegerConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Int()
+}
+
+func TestIntegerConverter_Ptr(t *testing.T) {
 	ptr, err := henge.New(struct{}{}).Int().Ptr().Result()
 	assert.Nil(t, ptr)
 	assert.EqualError(t, err, "Failed to convert from struct {} to int64: fields=, value=struct {}{}, error=unsupported type")
@@ -26,4 +30,8 @@ func TestIntegerConverterPtr(t *testing.T) {
 	ptr, err = henge.New((*struct{})(nil)).Int().Ptr().Result()
 	assert.Nil(t, ptr)
 	assert.EqualError(t, err, "Failed to convert from *struct {} to int64: fields=, value=(*struct {})(nil), error=unsupported type")
+}
+
+func TestIntegerPtrConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).IntPtr()
 }

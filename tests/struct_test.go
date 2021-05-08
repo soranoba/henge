@@ -15,6 +15,10 @@ type User struct {
 	Age  int
 }
 
+func TestStructConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Struct()
+}
+
 func TestStructConverter_EmbeddedField(t *testing.T) {
 	type In struct {
 		A string

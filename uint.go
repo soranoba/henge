@@ -138,6 +138,11 @@ func (c *UnsignedIntegerConverter) Value() uint64 {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *UnsignedIntegerConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *UnsignedIntegerConverter) Error() error {
 	return c.err
@@ -157,6 +162,11 @@ func (c *UnsignedIntegerPtrConverter) Result() (*uint64, error) {
 
 // Value returns the conversion result.
 func (c *UnsignedIntegerPtrConverter) Value() *uint64 {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *UnsignedIntegerPtrConverter) Interface() interface{} {
 	return c.value
 }
 

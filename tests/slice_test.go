@@ -7,7 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSliceConverter_Nil(t *testing.T) {
+func TestSliceConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Slice()
+	var _ henge.Converter = henge.New(nil).IntSlice()
+	var _ henge.Converter = henge.New(nil).UintSlice()
+	var _ henge.Converter = henge.New(nil).FloatSlice()
+	var _ henge.Converter = henge.New(nil).StringSlice()
+}
+
+func TestSliceConverter_nil(t *testing.T) {
 	s, err := henge.New(([]int)(nil)).Slice().Result()
 	assert.NoError(t, err)
 	assert.Nil(t, s)
@@ -17,7 +25,7 @@ func TestSliceConverter_Nil(t *testing.T) {
 	assert.Nil(t, s)
 }
 
-func TestSliceConverter_PtrSlice(t *testing.T) {
+func TestSliceConverter_Convert_ptrSlice(t *testing.T) {
 	s := make([]*int, 0)
 	assert.NoError(t, henge.New([]int{1, 2, 3}).Slice().Convert(&s))
 	if assert.Equal(t, 3, len(s)) {
@@ -32,7 +40,7 @@ func TestSliceConverter_PtrSlice(t *testing.T) {
 	assert.Equal(t, 2, *a[1])
 }
 
-func TestSliceConverter_NilValue(t *testing.T) {
+func TestSliceConverter_Convert_nilValue(t *testing.T) {
 	s := make([]*int, 0)
 	assert.NoError(t, henge.New(make([]*uint, 3)).Slice().Convert(&s))
 	if assert.Equal(t, 3, len(s)) {

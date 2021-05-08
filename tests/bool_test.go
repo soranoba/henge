@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBoolConverter(t *testing.T) {
+func TestBoolConverter_interface(t *testing.T) {
 	var _ henge.Converter = henge.New(nil).Bool()
 }
 
@@ -30,4 +30,8 @@ func TestBoolConverter_Ptr(t *testing.T) {
 	ptr, err = henge.New((*struct{})(nil)).Bool().Ptr().Result()
 	assert.Nil(t, ptr)
 	assert.NoError(t, err)
+}
+
+func TestBoolPtrConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).BoolPtr()
 }

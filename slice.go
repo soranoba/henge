@@ -250,7 +250,7 @@ func (c *UnsignedIntegerSliceConverter) Value() []uint64 {
 }
 
 // Interface returns the conversion result of interface type.
-func (c *UnsignedIntegerConverter) Interface() interface{} {
+func (c *UnsignedIntegerSliceConverter) Interface() interface{} {
 	return c.value
 }
 

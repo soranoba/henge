@@ -19,6 +19,10 @@ func TestConverter_Get(t *testing.T) {
 	assert.False(t, ok)
 }
 
+func TestValueConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil)
+}
+
 func TestValueConverter_Convert_Interface(t *testing.T) {
 	var i interface{}
 	assert.NoError(t, henge.New("a").Convert(&i))

@@ -10,6 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMapConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Map()
+}
+
+func TestJSONMapConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).JSONMap()
+}
+
 func TestJSONMapConverter(t *testing.T) {
 	type Internal struct {
 		Y int
