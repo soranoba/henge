@@ -42,10 +42,15 @@ type (
 	mapOpts struct {
 		maxDepth            uint
 		filterFuns          mapFilterFuns
+		keyType             reflect.Type
 		keyConversionFunc   ConversionFunc
 		valueConversionFunc ConversionFunc
 	}
 	mapFilterFuns []func(k interface{}, v interface{}) bool
+)
+
+var (
+	interfaceType = reflect.ValueOf([]interface{}{}).Type().Elem()
 )
 
 func (fs mapFilterFuns) All(k interface{}, v interface{}) bool {
@@ -70,9 +75,10 @@ func defaultConverterOpts() ConverterOpts {
 			valueConversionFunc: DefaultConversionFunc,
 		},
 		mapOpts: mapOpts{
-			maxDepth:   ^uint(0),
-			filterFuns: make(mapFilterFuns, 0),
-			keyConversionFunc: DefaultConversionFunc,
+			maxDepth:            ^uint(0),
+			filterFuns:          make(mapFilterFuns, 0),
+			keyType:             interfaceType,
+			keyConversionFunc:   DefaultConversionFunc,
 			valueConversionFunc: DefaultConversionFunc,
 		},
 	}

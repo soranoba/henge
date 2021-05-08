@@ -17,11 +17,11 @@ func TestWithSliceValueConverter_conversionFailed(t *testing.T) {
 func TestWithMapKeyConverter_conversionFailed(t *testing.T) {
 	in := map[interface{}]interface{}{
 		"1.0": map[float64]interface{}{1.5: "a"},
-		"b": map[uint64]interface{}{2: "b"},
+		"b":   map[uint64]interface{}{2: "b"},
 	}
 
 	assert.Error(t, henge.New(in, henge.WithMapKeyConverter(func(converter *henge.ValueConverter) henge.Converter {
-			return converter.Float().Int()
+		return converter.Float().Int()
 	})).Map().Error())
 }
 
@@ -36,7 +36,7 @@ func TestWithValueKeyConverter_conversionFailed(t *testing.T) {
 
 	in = map[interface{}]interface{}{
 		"b": map[interface{}]interface{}{"b.1": 2.5, "b.2": 2},
-		"c": struct { X string }{X: "a"},
+		"c": struct{ X string }{X: "a"},
 	}
 	assert.Error(t, henge.New(in, henge.WithMapValueConverter(func(converter *henge.ValueConverter) henge.Converter {
 		return converter.Float().Int()

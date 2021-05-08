@@ -100,7 +100,7 @@ func ExampleWithMapValueConverter() {
 	in := map[interface{}]interface{}{
 		"a": map[interface{}]interface{}{"a.1": 1.5, "a.2": 1},
 		"b": map[interface{}]interface{}{"b.1": 2.5, "b.2": 2},
-		"c": struct { X float64 }{X: 3.5},
+		"c": struct{ X float64 }{X: 3.5},
 	}
 
 	fmt.Printf(
