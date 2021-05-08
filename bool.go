@@ -11,7 +11,7 @@ func (c *ValueConverter) Bool() *BoolConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	if inV.IsValid() {
 		switch inV.Type().Kind() {
 		case reflect.Bool:

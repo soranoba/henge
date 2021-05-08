@@ -65,19 +65,15 @@ func (c *baseConverter) SetValues(m map[string]interface{}) {
 	}
 }
 
-func (c *baseConverter) wrapConvertError(src interface{}, dstType reflect.Type, err error) error {
+func (c *baseConverter) wrapConvertError(srcValue interface{}, dstType reflect.Type, err error) error {
 	if convertErr, ok := err.(*ConvertError); ok {
 		err := *convertErr
 		err.DstType = dstType
 		return &err
 	}
-	srcValue := src
 	var srcType reflect.Type
 	if reflect.ValueOf(srcValue).IsValid() {
 		srcType = reflect.ValueOf(srcValue).Type()
-		if c.isNil {
-			srcValue = reflect.New(srcType).Elem().Interface()
-		}
 	}
 	return &ConvertError{
 		Field:   c.field,
@@ -91,8 +87,9 @@ func (c *baseConverter) wrapConvertError(src interface{}, dstType reflect.Type, 
 // ValueConverter is a converter that converts an interface type to another type.
 type ValueConverter struct {
 	*baseConverter
-	value interface{}
-	err   error
+	reflectValue reflect.Value
+	value        interface{}
+	err          error
 }
 
 // New returns a new ValueConverter
@@ -102,17 +99,19 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 		f(&opts)
 	}
 
-	inV := reflect.ValueOf(i)
+	reflectValue := reflect.ValueOf(i)
 	isNil := false
-	switch inV.Kind() {
+	switch reflectValue.Kind() {
 	case reflect.Ptr:
-		if isNil = inV.IsNil(); isNil {
-			i = reflect.New(inV.Type().Elem()).Interface()
+		if isNil = reflectValue.IsNil(); isNil {
+			reflectValue = reflect.New(reflectValue.Type().Elem())
 		}
 	case reflect.Slice, reflect.Map:
-		if isNil = inV.IsNil(); isNil {
-			i = reflect.New(inV.Type()).Interface()
+		if isNil = reflectValue.IsNil(); isNil {
+			reflectValue = reflect.New(reflectValue.Type())
 		}
+	case reflect.Interface:
+		isNil = reflectValue.IsNil()
 	}
 
 	return &ValueConverter{
@@ -121,8 +120,9 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 			opts:    opts,
 			storage: map[string]interface{}{},
 		},
-		value: i,
-		err:   nil,
+		reflectValue: reflectValue,
+		value:        i,
+		err:          nil,
 	}
 }
 

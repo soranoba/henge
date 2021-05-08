@@ -18,7 +18,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	switch inV.Kind() {
 	case reflect.Map:
 		value = map[interface{}]interface{}{}
@@ -82,7 +82,7 @@ func (c *ValueConverter) jsonMapWithDepth(depth uint) *JSONMapConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	switch inV.Kind() {
 	case reflect.Map:
 		value = map[string]interface{}{}

@@ -13,7 +13,7 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	if inV.IsValid() {
 		inT := inV.Type()
 		outT := reflect.TypeOf(value)

@@ -9,7 +9,7 @@ func (c *ValueConverter) Slice() *SliceConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	switch inV.Kind() {
 	case reflect.Array, reflect.Slice:
 		value = make([]interface{}, inV.Len())

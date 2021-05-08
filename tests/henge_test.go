@@ -15,12 +15,34 @@ func TestConverter_Get(t *testing.T) {
 		assert.Equal(t, 1, v)
 	}
 
-	_, ok := c.Get("no").(bool)
-	assert.False(t, ok)
+	assert.Nil(t, c.Get("no"))
+}
+
+func TestConverter_SetValues(t *testing.T) {
+	c := henge.New("some value")
+
+	c.SetValues(map[string]interface{}{"a": 1, "b": 2})
+	if v, ok := c.Get("a").(int); ok {
+		assert.Equal(t, 1, v)
+	}
+	if v, ok := c.Get("b").(int); ok {
+		assert.Equal(t, 2, v)
+	}
+
+	assert.Nil(t, c.Get("c"))
 }
 
 func TestValueConverter_interface(t *testing.T) {
 	var _ henge.Converter = henge.New(nil)
+}
+
+func TestValueConverter_Value(t *testing.T) {
+	assert.Equal(t, nil, henge.New(nil).Value())
+	assert.Equal(t, (*string)(nil), henge.New((*string)(nil)).Value())
+	assert.Equal(t, 1, henge.New(1).Value())
+
+	var i int
+	assert.Equal(t, &i, henge.New(&i).Value())
 }
 
 func TestValueConverter_Convert_Interface(t *testing.T) {

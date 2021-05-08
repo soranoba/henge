@@ -12,7 +12,7 @@ func (c *ValueConverter) Struct() *StructConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	switch inV.Kind() {
 	case reflect.Struct:
 		value = c.value
