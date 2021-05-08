@@ -28,7 +28,7 @@ func (c *ValueConverter) Struct() *StructConverter {
 
 // StructConverter is a converter that converts a struct type to another type.
 type StructConverter struct {
-	baseConverter
+	*baseConverter
 	value interface{}
 	err   error
 }
@@ -65,7 +65,7 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	elemOutV := toInitializedNonPtrValue(outV)
 
 	if beforeCallback, ok := elemOutV.Addr().Interface().(BeforeCallback); ok {
-		if err = beforeCallback.BeforeConvert(c.value, &c.baseConverter); err != nil {
+		if err = beforeCallback.BeforeConvert(c.value, c.baseConverter); err != nil {
 			goto failed
 		}
 	}
@@ -144,7 +144,7 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	}
 
 	if afterCallback, ok := elemOutV.Addr().Interface().(AfterCallback); ok {
-		err = afterCallback.AfterConvert(c.value, &c.baseConverter)
+		err = afterCallback.AfterConvert(c.value, c.baseConverter)
 	}
 
 failed:

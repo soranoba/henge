@@ -36,7 +36,7 @@ func (c *ValueConverter) BoolPtr() *BoolPtrConverter {
 
 // BoolConverter is a converter that converts a bool type to another type.
 type BoolConverter struct {
-	baseConverter
+	*baseConverter
 	value bool
 	err   error
 }
@@ -100,7 +100,7 @@ func (c *BoolConverter) Error() error {
 
 // BoolPtrConverter is a converter that converts a pointer of bool type to another type.
 type BoolPtrConverter struct {
-	baseConverter
+	*baseConverter
 	value *bool
 	err   error
 }

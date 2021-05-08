@@ -64,7 +64,7 @@ func (c *ValueConverter) IntPtr() *IntegerPtrConverter {
 
 // IntegerConverter is a converter that converts an integer type to another type.
 type IntegerConverter struct {
-	baseConverter
+	*baseConverter
 	value int64
 	err   error
 }
@@ -149,7 +149,7 @@ func (c *IntegerConverter) Error() error {
 
 // IntegerPtrConverter is a converter that converts a pointer of integer type to another type.
 type IntegerPtrConverter struct {
-	baseConverter
+	*baseConverter
 	value *int64
 	err   error
 }

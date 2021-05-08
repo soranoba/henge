@@ -50,7 +50,7 @@ func (c *ValueConverter) FloatPtr() *FloatPtrConverter {
 
 // FloatConverter is a converter that converts a float type to another type.
 type FloatConverter struct {
-	baseConverter
+	*baseConverter
 	value float64
 	err   error
 }
@@ -135,7 +135,7 @@ func (c *FloatConverter) Error() error {
 
 // FloatPtrConverter is a converter that converts a pointer of float type to another type.
 type FloatPtrConverter struct {
-	baseConverter
+	*baseConverter
 	value *float64
 	err   error
 }

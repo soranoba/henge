@@ -65,7 +65,7 @@ func (c *ValueConverter) UintPtr() *UnsignedIntegerPtrConverter {
 
 // UnsignedIntegerConverter is a converter that converts an unsigned integer type to another type.
 type UnsignedIntegerConverter struct {
-	baseConverter
+	*baseConverter
 	value uint64
 	err   error
 }
@@ -145,7 +145,7 @@ func (c *UnsignedIntegerConverter) Error() error {
 
 // UnsignedIntegerPtrConverter is a converter that converts a pointer of uint type to another type.
 type UnsignedIntegerPtrConverter struct {
-	baseConverter
+	*baseConverter
 	value *uint64
 	err   error
 }

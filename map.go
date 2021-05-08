@@ -142,7 +142,7 @@ func (c *ValueConverter) jsonMapWithDepth(depth uint) *JSONMapConverter {
 
 // MapConverter is a converter that converts a map type to another type.
 type MapConverter struct {
-	baseConverter
+	*baseConverter
 	value map[interface{}]interface{}
 	err   error
 }
@@ -251,7 +251,7 @@ func (c *MapConverter) Error() error {
 
 // JSONMapConverter is a converter that converts a json map type to another type.
 type JSONMapConverter struct {
-	baseConverter
+	*baseConverter
 	value map[string]interface{}
 	err   error
 }

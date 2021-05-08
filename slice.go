@@ -52,7 +52,7 @@ func (c *ValueConverter) FloatSlice() *FloatSliceConverter {
 
 // SliceConverter is a converter that converts a slice type to another type.
 type SliceConverter struct {
-	baseConverter
+	*baseConverter
 	value []interface{}
 	err   error
 }
@@ -207,7 +207,7 @@ func (c *SliceConverter) Error() error {
 
 // IntegerSliceConverter is a converter that converts a slice of integer type to another type.
 type IntegerSliceConverter struct {
-	baseConverter
+	*baseConverter
 	value []int64
 	err   error
 }
@@ -234,7 +234,7 @@ func (c *IntegerSliceConverter) Error() error {
 
 // UnsignedIntegerSliceConverter is a converter that converts a slice of uint type to another type.
 type UnsignedIntegerSliceConverter struct {
-	baseConverter
+	*baseConverter
 	value []uint64
 	err   error
 }
@@ -261,7 +261,7 @@ func (c *UnsignedIntegerSliceConverter) Error() error {
 
 // FloatSliceConverter is a converter that converts a slice of float type to another type.
 type FloatSliceConverter struct {
-	baseConverter
+	*baseConverter
 	value []float64
 	err   error
 }
@@ -288,7 +288,7 @@ func (c *FloatSliceConverter) Error() error {
 
 // StringSliceConverter is a converter that converts a slice of string type to another type.
 type StringSliceConverter struct {
-	baseConverter
+	*baseConverter
 	value []string
 	err   error
 }

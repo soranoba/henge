@@ -59,7 +59,7 @@ func (c *ValueConverter) StringPtr() *StringPtrConverter {
 
 // StringConverter is a converter that converts a string type to another type.
 type StringConverter struct {
-	baseConverter
+	*baseConverter
 	value string
 	err   error
 }
@@ -123,7 +123,7 @@ func (c *StringConverter) Error() error {
 
 // StringPtrConverter is a converter that converts a pointer of string type to another type.
 type StringPtrConverter struct {
-	baseConverter
+	*baseConverter
 	value *string
 	err   error
 }

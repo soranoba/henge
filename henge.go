@@ -89,7 +89,7 @@ func (c *baseConverter) wrapConvertError(src interface{}, dstType reflect.Type, 
 
 // ValueConverter is a converter that converts an interface type to another type.
 type ValueConverter struct {
-	baseConverter
+	*baseConverter
 	value interface{}
 	err   error
 }
@@ -115,7 +115,7 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 	}
 
 	return &ValueConverter{
-		baseConverter: baseConverter{
+		baseConverter: &baseConverter{
 			isNil:   isNil,
 			opts:    opts,
 			storage: map[string]interface{}{},
