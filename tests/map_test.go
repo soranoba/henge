@@ -14,27 +14,6 @@ func TestMapConverter_interface(t *testing.T) {
 	var _ henge.Converter = henge.New(nil).Map()
 }
 
-func TestJSONMapConverter_interface(t *testing.T) {
-	var _ henge.Converter = henge.New(nil).JSONMap()
-}
-
-func TestJSONMapConverter(t *testing.T) {
-	type Internal struct {
-		Y int
-		Z string
-	}
-	type In struct {
-		X string
-		I Internal
-	}
-	m, err := henge.New(In{X: "x", I: Internal{Y: 1, Z: "z"}}).JSONMap().Result()
-	assert.NoError(t, err)
-	assert.Equal(t,
-		map[string]interface{}{"X": "x", "I": map[string]interface{}{"Y": 1, "Z": "z"}},
-		m,
-	)
-}
-
 func TestMapConverter_PrivateField(t *testing.T) {
 	// NOTE: private fields cannot be copied
 	m, err := henge.New(time.Now()).Map().Result()
