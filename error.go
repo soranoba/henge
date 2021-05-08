@@ -18,14 +18,16 @@ var (
 	ErrNegativeNumber = errors.New("negative number")
 )
 
-// ConvertError is an error that shows where the error occurred during conversion.
-type ConvertError struct {
-	Field   string
-	SrcType reflect.Type
-	DstType reflect.Type
-	Value   interface{}
-	Err     error
-}
+type (
+	// ConvertError is an error that shows where the error occurred during conversion.
+	ConvertError struct {
+		Field   string
+		SrcType reflect.Type
+		DstType reflect.Type
+		Value   interface{}
+		Err     error
+	}
+)
 
 func (e *ConvertError) Unwrap() error {
 	return e.Err

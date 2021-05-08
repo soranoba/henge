@@ -140,7 +140,7 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 			}
 		}
 	default:
-		err = c.new(c.value, c.field).convert(outV)
+		err = c.new(c.value, c.field).Map().convert(outV)
 	}
 
 	if afterCallback, ok := elemOutV.Addr().Interface().(AfterCallback); ok {

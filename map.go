@@ -35,19 +35,25 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 			return
 		}
 
-		// NOTE: `reflect.ValueOf(nil)` cannot use at SetMapIndex.
+		// NOTE: `reflect.ValueOf(nil).Convert(type)` occurs panic.
 		//       Therefore, it uses ptr and Elem after store it on a variable once.
 		k := kConv.Interface()
-		convertedKeyVal := reflect.ValueOf(&k).Elem()
+		convertedKeyVal := (func() reflect.Value {
+			if k == nil {
+				return reflect.ValueOf(&k).Elem().Convert(c.opts.keyType)
+			} else {
+				return reflect.ValueOf(k).Convert(c.opts.keyType)
+			}
+		})()
 
 		switch reflect.Indirect(reflect.ValueOf(vVal.Interface())).Kind() {
 		case reflect.Struct, reflect.Map:
 			if depth < c.opts.mapOpts.maxDepth {
-				var v interface{}
-				if v, err = c.new(vVal.Interface(), c.field+"."+strKey).mapWithDepth(depth + 1).Result(); err != nil {
+				conv := c.new(vVal.Interface(), c.field+"."+strKey).mapWithDepth(depth + 1)
+				if err = conv.err; err != nil {
 					return
 				}
-				value.SetMapIndex(convertedKeyVal, reflect.ValueOf(&v).Elem())
+				value.SetMapIndex(convertedKeyVal, conv.value)
 				break
 			}
 			fallthrough

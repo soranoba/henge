@@ -112,6 +112,8 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 		}
 	case reflect.Interface:
 		isNil = reflectValue.IsNil()
+	case reflect.Invalid:
+		isNil = true
 	}
 
 	return &ValueConverter{
