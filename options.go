@@ -10,15 +10,22 @@ type (
 	ConverterOpts struct {
 		numOpts
 		stringOpts
+		sliceOpts
 		mapOpts
 	}
 	// RoundingFunc is a function that rounds from float to nearest integer.
 	// e.g. math.Floor
 	RoundingFunc func(float64) float64
-	// KeyConversionFunc is a conversion function of keys.
-	KeyConversionFunc func(keyConverter *ValueConverter) Converter
-	// ValueConversionFunc is a conversion function of values.
-	ValueConversionFunc func(key interface{}, valueConverter *ValueConverter) Converter
+	// ConversionFunc is a conversion function of values.
+	ConversionFunc func(converter *ValueConverter) Converter
+)
+
+var (
+	// DefaultConversionFunc is a ConversionFunc used by default.
+	// It is no conversion.
+	DefaultConversionFunc ConversionFunc = func(converter *ValueConverter) Converter {
+		return converter
+	}
 )
 
 type (
@@ -29,11 +36,14 @@ type (
 		fmt  byte
 		prec int
 	}
+	sliceOpts struct {
+		valueConversionFunc ConversionFunc
+	}
 	mapOpts struct {
 		maxDepth            uint
 		filterFuns          mapFilterFuns
-		keyConversionFunc   KeyConversionFunc
-		valueConversionFunc ValueConversionFunc
+		keyConversionFunc   ConversionFunc
+		valueConversionFunc ConversionFunc
 	}
 	mapFilterFuns []func(k interface{}, v interface{}) bool
 )
@@ -56,15 +66,14 @@ func defaultConverterOpts() ConverterOpts {
 			fmt:  'f',
 			prec: -1,
 		},
+		sliceOpts: sliceOpts{
+			valueConversionFunc: DefaultConversionFunc,
+		},
 		mapOpts: mapOpts{
 			maxDepth:   ^uint(0),
 			filterFuns: make(mapFilterFuns, 0),
-			keyConversionFunc: func(keyConverter *ValueConverter) Converter {
-				return keyConverter
-			},
-			valueConversionFunc: func(key interface{}, valueConverter *ValueConverter) Converter {
-				return valueConverter
-			},
+			keyConversionFunc: DefaultConversionFunc,
+			valueConversionFunc: DefaultConversionFunc,
 		},
 	}
 }
@@ -87,10 +96,19 @@ func WithRoundingFunc(f RoundingFunc) func(*ConverterOpts) {
 	}
 }
 
+// WithSliceValueConverter is an option when converting to slice.
+//
+// It can be used when converting values to other types.
+func WithSliceValueConverter(f ConversionFunc) func(*ConverterOpts) {
+	return func(opt *ConverterOpts) {
+		opt.sliceOpts.valueConversionFunc = f
+	}
+}
+
 // WithMapKeyConverter is an option when converting to map.
 //
 // It can be used when converting keys to other types.
-func WithMapKeyConverter(f KeyConversionFunc) func(*ConverterOpts) {
+func WithMapKeyConverter(f ConversionFunc) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.mapOpts.keyConversionFunc = f
 	}
@@ -99,7 +117,7 @@ func WithMapKeyConverter(f KeyConversionFunc) func(*ConverterOpts) {
 // WithMapValueConverter is an option when converting to map.
 //
 // It can be used when converting values to other types.
-func WithMapValueConverter(f ValueConversionFunc) func(*ConverterOpts) {
+func WithMapValueConverter(f ConversionFunc) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.mapOpts.valueConversionFunc = f
 	}

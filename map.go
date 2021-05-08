@@ -30,7 +30,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 				continue
 			}
 			strKey := New(iterK.Interface()).String().Value()
-			kConv := c.opts.keyConversionFunc(c.new(iterK.Interface(), c.field+"[]"+strKey))
+			kConv := c.opts.mapOpts.keyConversionFunc(c.new(iterK.Interface(), c.field+"[]"+strKey))
 			if err = kConv.Error(); err != nil {
 				goto End
 			}
@@ -47,7 +47,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 				}
 				fallthrough
 			default:
-				vConv := c.opts.valueConversionFunc(iterK.Interface(), c.new(iterV.Interface(), c.field+"."+strKey))
+				vConv := c.opts.mapOpts.valueConversionFunc(c.new(iterV.Interface(), c.field+"."+strKey))
 				if err = vConv.Error(); err != nil {
 					goto End
 				}
@@ -84,7 +84,7 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 				}
 				fallthrough
 			default:
-				vConv := c.opts.valueConversionFunc(key, c.new(field.Interface(), c.field+"."+key))
+				vConv := c.opts.mapOpts.valueConversionFunc(c.new(field.Interface(), c.field+"."+key))
 				if err = vConv.Error(); err != nil {
 					goto End
 				}

@@ -14,7 +14,11 @@ func (c *ValueConverter) Slice() *SliceConverter {
 	case reflect.Array, reflect.Slice:
 		value = make([]interface{}, inV.Len())
 		for i := 0; i < inV.Len(); i++ {
-			value[i] = inV.Index(i).Interface()
+			vConv := c.opts.sliceOpts.valueConversionFunc(c.new(inV.Index(i).Interface(), c.field+"["+New(i).String().Value()+"]"))
+			if err = vConv.Error(); err != nil {
+				break
+			}
+			value[i] = vConv.Interface()
 		}
 	default:
 		err = ErrUnsupportedType

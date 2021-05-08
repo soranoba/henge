@@ -53,6 +53,26 @@ func ExampleWithRoundingFunc() {
 	// WithRoundingFunc(math.Ceil): 2
 }
 
+func ExampleWithSliceValueConverter() {
+	in := []string{"1.5", "2", "2.5"}
+
+	fmt.Printf(
+		"Default:              %v\n",
+		New(in).Slice().Value(),
+	)
+
+	fmt.Printf(
+		"Convert value to int: %v\n",
+		New(in, WithSliceValueConverter(func(converter *ValueConverter) Converter {
+			return converter.Float().Int()
+		})).Slice().Value(),
+	)
+
+	// Output:
+	// Default:              [1.5 2 2.5]
+	// Convert value to int: [1 2 2]
+}
+
 func ExampleWithMapKeyConverter() {
 	in := map[interface{}]interface{}{
 		"1.0": map[float64]interface{}{1.5: "a"},
@@ -66,8 +86,8 @@ func ExampleWithMapKeyConverter() {
 
 	fmt.Printf(
 		"Convert key to int: %v\n",
-		New(in, WithMapKeyConverter(func(keyConverter *ValueConverter) Converter {
-			return keyConverter.Float().Int()
+		New(in, WithMapKeyConverter(func(converter *ValueConverter) Converter {
+			return converter.Float().Int()
 		})).Map().Value(),
 	)
 
@@ -84,23 +104,20 @@ func ExampleWithMapValueConverter() {
 	}
 
 	fmt.Printf(
-		"Default:                          %v\n",
+		"Default:               %v\n",
 		New(in).Map().Value(),
 	)
 
 	fmt.Printf(
-		"Convert values of b and c to int: %v\n",
-		New(in, WithMapValueConverter(func(key interface{}, keyConverter *ValueConverter) Converter {
-			if key == "a.1" || key == "a.2" {
-				return keyConverter
-			}
-			return keyConverter.Float().Int()
+		"Convert values to int: %v\n",
+		New(in, WithMapValueConverter(func(converter *ValueConverter) Converter {
+			return converter.Float().Int()
 		})).Map().Value(),
 	)
 
 	// Output:
-	// Default:                          map[a:map[a.1:1.5 a.2:1] b:map[b.1:2.5 b.2:2] c:map[X:3.5]]
-	// Convert values of b and c to int: map[a:map[a.1:1.5 a.2:1] b:map[b.1:2 b.2:2] c:map[X:3]]
+	// Default:               map[a:map[a.1:1.5 a.2:1] b:map[b.1:2.5 b.2:2] c:map[X:3.5]]
+	// Convert values to int: map[a:map[a.1:1 a.2:1] b:map[b.1:2 b.2:2] c:map[X:3]]
 }
 
 func ExampleWithMapMaxDepth() {
