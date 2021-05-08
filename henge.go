@@ -35,7 +35,7 @@ type (
 	baseConverter struct {
 		isNil   bool
 		field   string
-		opts    ConverterOpts
+		opts    *converterOpts
 		storage map[string]interface{}
 	}
 )
@@ -93,10 +93,10 @@ type ValueConverter struct {
 }
 
 // New returns a new ValueConverter
-func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
+func New(i interface{}, fs ...ConverterOption) *ValueConverter {
 	opts := defaultConverterOpts()
 	for _, f := range fs {
-		f(&opts)
+		f(opts)
 	}
 
 	reflectValue := reflect.ValueOf(i)

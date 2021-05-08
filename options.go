@@ -6,13 +6,8 @@ import (
 )
 
 type (
-	// ConverterOpts are options for the conversion.
-	ConverterOpts struct {
-		numOpts
-		stringOpts
-		sliceOpts
-		mapOpts
-	}
+	// ConverterOption are options for the conversion.
+	ConverterOption func(opts *converterOpts)
 	// RoundingFunc is a function that rounds from float to nearest integer.
 	// e.g. math.Floor
 	RoundingFunc func(float64) float64
@@ -29,6 +24,12 @@ var (
 )
 
 type (
+	converterOpts struct {
+		numOpts
+		stringOpts
+		sliceOpts
+		mapOpts
+	}
 	numOpts struct {
 		roundingFunc RoundingFunc
 	}
@@ -62,8 +63,8 @@ func (fs mapFilterFuns) All(k interface{}, v interface{}) bool {
 	return true
 }
 
-func defaultConverterOpts() ConverterOpts {
-	return ConverterOpts{
+func defaultConverterOpts() *converterOpts {
+	return &converterOpts{
 		numOpts: numOpts{
 			roundingFunc: math.Floor,
 		},
@@ -86,8 +87,8 @@ func defaultConverterOpts() ConverterOpts {
 
 // WithFloatFormat is an option when converting from float to string.
 // Ref: strconv.FormatFloat
-func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
-	return func(opt *ConverterOpts) {
+func WithFloatFormat(fmt byte, prec int) ConverterOption {
+	return func(opt *converterOpts) {
 		opt.stringOpts.fmt = fmt
 		opt.stringOpts.prec = prec
 	}
@@ -96,8 +97,8 @@ func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
 // WithRoundingFunc is an option when converting from float to integer (or unsigned integer).
 // It specify the rounding method from float to nearest integer.
 // By default, it use math.Floor.
-func WithRoundingFunc(f RoundingFunc) func(*ConverterOpts) {
-	return func(opt *ConverterOpts) {
+func WithRoundingFunc(f RoundingFunc) ConverterOption {
+	return func(opt *converterOpts) {
 		opt.numOpts.roundingFunc = f
 	}
 }
@@ -105,8 +106,8 @@ func WithRoundingFunc(f RoundingFunc) func(*ConverterOpts) {
 // WithSliceValueConverter is an option when converting to slice.
 //
 // It can be used when converting values to other types.
-func WithSliceValueConverter(f ConversionFunc) func(*ConverterOpts) {
-	return func(opt *ConverterOpts) {
+func WithSliceValueConverter(f ConversionFunc) ConverterOption {
+	return func(opt *converterOpts) {
 		opt.sliceOpts.valueConversionFunc = f
 	}
 }
@@ -114,8 +115,8 @@ func WithSliceValueConverter(f ConversionFunc) func(*ConverterOpts) {
 // WithMapKeyConverter is an option when converting to map.
 //
 // It can be used when converting keys to other types.
-func WithMapKeyConverter(f ConversionFunc) func(*ConverterOpts) {
-	return func(opt *ConverterOpts) {
+func WithMapKeyConverter(f ConversionFunc) ConverterOption {
+	return func(opt *converterOpts) {
 		opt.mapOpts.keyConversionFunc = f
 	}
 }
@@ -123,8 +124,8 @@ func WithMapKeyConverter(f ConversionFunc) func(*ConverterOpts) {
 // WithMapValueConverter is an option when converting to map.
 //
 // It can be used when converting values to other types.
-func WithMapValueConverter(f ConversionFunc) func(*ConverterOpts) {
-	return func(opt *ConverterOpts) {
+func WithMapValueConverter(f ConversionFunc) ConverterOption {
+	return func(opt *converterOpts) {
 		opt.mapOpts.valueConversionFunc = f
 	}
 }
@@ -133,8 +134,8 @@ func WithMapValueConverter(f ConversionFunc) func(*ConverterOpts) {
 //
 // By default, all structs are converted to maps.
 // It can be used when converting only the top-level.
-func WithMapMaxDepth(maxDepth uint) func(*ConverterOpts) {
-	return func(opt *ConverterOpts) {
+func WithMapMaxDepth(maxDepth uint) ConverterOption {
+	return func(opt *converterOpts) {
 		opt.mapOpts.maxDepth = maxDepth
 	}
 }
@@ -143,8 +144,8 @@ func WithMapMaxDepth(maxDepth uint) func(*ConverterOpts) {
 //
 // If you specify multiple filters, it will be copied only if all filters return true.
 // By default, it copies everything.
-func WithMapFilter(cond func(k interface{}, v interface{}) bool) func(*ConverterOpts) {
-	return func(opt *ConverterOpts) {
+func WithMapFilter(cond func(k interface{}, v interface{}) bool) ConverterOption {
+	return func(opt *converterOpts) {
 		opt.mapOpts.filterFuns = append(opt.mapOpts.filterFuns, cond)
 	}
 }
@@ -152,7 +153,7 @@ func WithMapFilter(cond func(k interface{}, v interface{}) bool) func(*Converter
 // WithoutNilMapKey is an option when converting to map.
 //
 // When it used, it will not copy if the key is nil.
-func WithoutNilMapKey() func(*ConverterOpts) {
+func WithoutNilMapKey() ConverterOption {
 	return WithMapFilter(func(k interface{}, v interface{}) bool {
 		return !isNil(k)
 	})
@@ -161,7 +162,7 @@ func WithoutNilMapKey() func(*ConverterOpts) {
 // WithoutNilMapValue is an option when converting to map.
 //
 // When it used, it will not copy if the value is nil.
-func WithoutNilMapValue() func(*ConverterOpts) {
+func WithoutNilMapValue() ConverterOption {
 	return WithMapFilter(func(k interface{}, v interface{}) bool {
 		return !isNil(v)
 	})
@@ -170,7 +171,7 @@ func WithoutNilMapValue() func(*ConverterOpts) {
 // WithoutZeroMapKey is an option when converting to map.
 //
 // When it used, it will not copy if the key is zero.
-func WithoutZeroMapKey() func(*ConverterOpts) {
+func WithoutZeroMapKey() ConverterOption {
 	return WithMapFilter(func(k interface{}, v interface{}) bool {
 		return !isZero(k)
 	})
@@ -179,7 +180,7 @@ func WithoutZeroMapKey() func(*ConverterOpts) {
 // WithoutZeroMapValue is an option when converting to map.
 //
 // When it used, it will not copy if the value is zero.
-func WithoutZeroMapValue() func(*ConverterOpts) {
+func WithoutZeroMapValue() ConverterOption {
 	return WithMapFilter(func(k interface{}, v interface{}) bool {
 		return !isZero(v)
 	})
