@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

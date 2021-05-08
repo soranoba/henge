@@ -39,7 +39,7 @@ When using Henge, it easy to create pointer types while preserving the benefits 
 To install it, run:
 
 ```
-go get -u github.com/soranoba/henge
+go get -u github.com/soranoba/henge/v2
 ```
 
 ## Usage
@@ -50,7 +50,7 @@ go get -u github.com/soranoba/henge
 import (
 	"fmt"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 )
 
 func main() {
@@ -79,7 +79,7 @@ func main() {
 import (
 	"fmt"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 )
 
 func main() {

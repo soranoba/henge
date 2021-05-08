@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 	"github.com/stretchr/testify/assert"
 )
 
