@@ -23,12 +23,12 @@ func (c *ValueConverter) Struct() *StructConverter {
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf((*uint64)(nil)).Type().Elem(), err)
 	}
-	return &StructConverter{converter: c.converter, value: value, err: err}
+	return &StructConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // StructConverter is a converter that converts a struct type to another type.
 type StructConverter struct {
-	converter
+	baseConverter
 	value interface{}
 	err   error
 }
@@ -43,6 +43,16 @@ func (c *StructConverter) Convert(out interface{}) error {
 	return c.convert(outV.Elem())
 }
 
+// Interface returns the conversion result of interface type.
+func (c *StructConverter) Interface() interface{} {
+	return c.value
+}
+
+// Error returns an error if the conversion fails.
+func (c *StructConverter) Error() error {
+	return c.err
+}
+
 func (c *StructConverter) convert(outV reflect.Value) error {
 	if c.err != nil {
 		return c.wrapConvertError(c.value, outV.Type(), c.err)
@@ -55,7 +65,7 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	elemOutV := toInitializedNonPtrValue(outV)
 
 	if beforeCallback, ok := elemOutV.Addr().Interface().(BeforeCallback); ok {
-		if err = beforeCallback.BeforeConvert(c.value, &c.converter); err != nil {
+		if err = beforeCallback.BeforeConvert(c.value, &c.baseConverter); err != nil {
 			goto failed
 		}
 	}
@@ -134,7 +144,7 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	}
 
 	if afterCallback, ok := elemOutV.Addr().Interface().(AfterCallback); ok {
-		err = afterCallback.AfterConvert(c.value, &c.converter)
+		err = afterCallback.AfterConvert(c.value, &c.baseConverter)
 	}
 
 failed:

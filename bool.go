@@ -26,7 +26,7 @@ func (c *ValueConverter) Bool() *BoolConverter {
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf((*bool)(nil)).Type().Elem(), err)
 	}
-	return &BoolConverter{converter: c.converter, value: value, err: err}
+	return &BoolConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // BoolPtr converts the input to pointer of bool type.
@@ -36,7 +36,7 @@ func (c *ValueConverter) BoolPtr() *BoolPtrConverter {
 
 // BoolConverter is a converter that converts a bool type to another type.
 type BoolConverter struct {
-	converter
+	baseConverter
 	value bool
 	err   error
 }
@@ -44,9 +44,9 @@ type BoolConverter struct {
 // Ptr converts the input to ptr type.
 func (c *BoolConverter) Ptr() *BoolPtrConverter {
 	if c.err != nil || c.isNil {
-		return &BoolPtrConverter{converter: c.converter, value: nil, err: c.err}
+		return &BoolPtrConverter{baseConverter: c.baseConverter, value: nil, err: c.err}
 	}
-	return &BoolPtrConverter{converter: c.converter, value: &c.value, err: c.err}
+	return &BoolPtrConverter{baseConverter: c.baseConverter, value: &c.value, err: c.err}
 }
 
 // Convert converts the input to the out type and assigns it.
@@ -88,6 +88,11 @@ func (c *BoolConverter) Value() bool {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *BoolConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails
 func (c *BoolConverter) Error() error {
 	return c.err
@@ -95,7 +100,7 @@ func (c *BoolConverter) Error() error {
 
 // BoolPtrConverter is a converter that converts a pointer of bool type to another type.
 type BoolPtrConverter struct {
-	converter
+	baseConverter
 	value *bool
 	err   error
 }
@@ -107,6 +112,11 @@ func (c *BoolPtrConverter) Result() (*bool, error) {
 
 // Value returns the conversion result.
 func (c *BoolPtrConverter) Value() *bool {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *BoolPtrConverter) Interface() interface{} {
 	return c.value
 }
 

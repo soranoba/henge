@@ -55,7 +55,7 @@ func (c *ValueConverter) Uint() *UnsignedIntegerConverter {
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf((*uint64)(nil)).Type().Elem(), err)
 	}
-	return &UnsignedIntegerConverter{converter: c.converter, value: value, err: err}
+	return &UnsignedIntegerConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // UintPtr converts the input to pointer of uint type.
@@ -65,7 +65,7 @@ func (c *ValueConverter) UintPtr() *UnsignedIntegerPtrConverter {
 
 // UnsignedIntegerConverter is a converter that converts an unsigned integer type to another type.
 type UnsignedIntegerConverter struct {
-	converter
+	baseConverter
 	value uint64
 	err   error
 }
@@ -73,9 +73,9 @@ type UnsignedIntegerConverter struct {
 // Ptr converts the input to ptr type.
 func (c *UnsignedIntegerConverter) Ptr() *UnsignedIntegerPtrConverter {
 	if c.err != nil || c.isNil {
-		return &UnsignedIntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
+		return &UnsignedIntegerPtrConverter{baseConverter: c.baseConverter, value: nil, err: c.err}
 	}
-	return &UnsignedIntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}
+	return &UnsignedIntegerPtrConverter{baseConverter: c.baseConverter, value: &c.value, err: nil}
 }
 
 // Convert converts the input to the out type and assigns it.
@@ -145,7 +145,7 @@ func (c *UnsignedIntegerConverter) Error() error {
 
 // UnsignedIntegerPtrConverter is a converter that converts a pointer of uint type to another type.
 type UnsignedIntegerPtrConverter struct {
-	converter
+	baseConverter
 	value *uint64
 	err   error
 }

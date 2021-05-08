@@ -25,9 +25,9 @@ func (c *ValueConverter) Slice() *SliceConverter {
 	}
 
 	if c.isNil {
-		return &SliceConverter{converter: c.converter, value: nil, err: err}
+		return &SliceConverter{baseConverter: c.baseConverter, value: nil, err: err}
 	}
-	return &SliceConverter{converter: c.converter, value: value, err: err}
+	return &SliceConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // StringSlice converts the input to slice of string type.
@@ -52,7 +52,7 @@ func (c *ValueConverter) FloatSlice() *FloatSliceConverter {
 
 // SliceConverter is a converter that converts a slice type to another type.
 type SliceConverter struct {
-	converter
+	baseConverter
 	value []interface{}
 	err   error
 }
@@ -128,10 +128,10 @@ func (c *SliceConverter) IntSlice() *IntegerSliceConverter {
 		fieldName := c.field + "[" + New(i).String().Value() + "]"
 		value[i], err = c.new(v, fieldName).Int().Result()
 		if err != nil {
-			return &IntegerSliceConverter{converter: c.converter, value: nil, err: err}
+			return &IntegerSliceConverter{baseConverter: c.baseConverter, value: nil, err: err}
 		}
 	}
-	return &IntegerSliceConverter{converter: c.converter, value: value, err: nil}
+	return &IntegerSliceConverter{baseConverter: c.baseConverter, value: value, err: nil}
 }
 
 // UintSlice converts the input to slice of uint type.
@@ -145,10 +145,10 @@ func (c *SliceConverter) UintSlice() *UnsignedIntegerSliceConverter {
 		fieldName := c.field + "[" + New(i).String().Value() + "]"
 		value[i], err = c.new(v, fieldName).Uint().Result()
 		if err != nil {
-			return &UnsignedIntegerSliceConverter{converter: c.converter, value: nil, err: err}
+			return &UnsignedIntegerSliceConverter{baseConverter: c.baseConverter, value: nil, err: err}
 		}
 	}
-	return &UnsignedIntegerSliceConverter{converter: c.converter, value: value, err: nil}
+	return &UnsignedIntegerSliceConverter{baseConverter: c.baseConverter, value: value, err: nil}
 }
 
 // FloatSlice converts the input to slice of float type.
@@ -162,10 +162,10 @@ func (c *SliceConverter) FloatSlice() *FloatSliceConverter {
 		fieldName := c.field + "[" + New(i).String().Value() + "]"
 		value[i], err = c.new(v, fieldName).Float().Result()
 		if err != nil {
-			return &FloatSliceConverter{converter: c.converter, value: nil, err: err}
+			return &FloatSliceConverter{baseConverter: c.baseConverter, value: nil, err: err}
 		}
 	}
-	return &FloatSliceConverter{converter: c.converter, value: value, err: nil}
+	return &FloatSliceConverter{baseConverter: c.baseConverter, value: value, err: nil}
 }
 
 // StringSlice converts the input to slice of string type.
@@ -179,10 +179,10 @@ func (c *SliceConverter) StringSlice() *StringSliceConverter {
 		fieldName := c.field + "[" + New(i).String().Value() + "]"
 		value[i], err = c.new(v, fieldName).String().Result()
 		if err != nil {
-			return &StringSliceConverter{converter: c.converter, value: nil, err: err}
+			return &StringSliceConverter{baseConverter: c.baseConverter, value: nil, err: err}
 		}
 	}
-	return &StringSliceConverter{converter: c.converter, value: value, err: nil}
+	return &StringSliceConverter{baseConverter: c.baseConverter, value: value, err: nil}
 }
 
 // Result returns the conversion result and error
@@ -195,6 +195,11 @@ func (c *SliceConverter) Value() []interface{} {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *SliceConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *SliceConverter) Error() error {
 	return c.err
@@ -202,7 +207,7 @@ func (c *SliceConverter) Error() error {
 
 // IntegerSliceConverter is a converter that converts a slice of integer type to another type.
 type IntegerSliceConverter struct {
-	converter
+	baseConverter
 	value []int64
 	err   error
 }
@@ -217,6 +222,11 @@ func (c *IntegerSliceConverter) Value() []int64 {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *IntegerSliceConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *IntegerSliceConverter) Error() error {
 	return c.err
@@ -224,7 +234,7 @@ func (c *IntegerSliceConverter) Error() error {
 
 // UnsignedIntegerSliceConverter is a converter that converts a slice of uint type to another type.
 type UnsignedIntegerSliceConverter struct {
-	converter
+	baseConverter
 	value []uint64
 	err   error
 }
@@ -239,6 +249,11 @@ func (c *UnsignedIntegerSliceConverter) Value() []uint64 {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *UnsignedIntegerConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *UnsignedIntegerSliceConverter) Error() error {
 	return c.err
@@ -246,7 +261,7 @@ func (c *UnsignedIntegerSliceConverter) Error() error {
 
 // FloatSliceConverter is a converter that converts a slice of float type to another type.
 type FloatSliceConverter struct {
-	converter
+	baseConverter
 	value []float64
 	err   error
 }
@@ -261,6 +276,11 @@ func (c *FloatSliceConverter) Value() []float64 {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *FloatSliceConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *FloatSliceConverter) Error() error {
 	return c.err
@@ -268,7 +288,7 @@ func (c *FloatSliceConverter) Error() error {
 
 // StringSliceConverter is a converter that converts a slice of string type to another type.
 type StringSliceConverter struct {
-	converter
+	baseConverter
 	value []string
 	err   error
 }
@@ -280,6 +300,11 @@ func (c *StringSliceConverter) Result() ([]string, error) {
 
 // Value returns the conversion result.
 func (c *StringSliceConverter) Value() []string {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *StringSliceConverter) Interface() interface{} {
 	return c.value
 }
 

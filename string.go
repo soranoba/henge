@@ -49,7 +49,7 @@ func (c *ValueConverter) String() *StringConverter {
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf((*string)(nil)).Type().Elem(), err)
 	}
-	return &StringConverter{converter: c.converter, value: value, err: err}
+	return &StringConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // StringPtr converts the input to pointer of string type.
@@ -59,7 +59,7 @@ func (c *ValueConverter) StringPtr() *StringPtrConverter {
 
 // StringConverter is a converter that converts a string type to another type.
 type StringConverter struct {
-	converter
+	baseConverter
 	value string
 	err   error
 }
@@ -67,9 +67,9 @@ type StringConverter struct {
 // Ptr converts the input to ptr type.
 func (c *StringConverter) Ptr() *StringPtrConverter {
 	if c.err != nil || c.isNil {
-		return &StringPtrConverter{converter: c.converter, value: nil, err: c.err}
+		return &StringPtrConverter{baseConverter: c.baseConverter, value: nil, err: c.err}
 	}
-	return &StringPtrConverter{converter: c.converter, value: &c.value, err: nil}
+	return &StringPtrConverter{baseConverter: c.baseConverter, value: &c.value, err: nil}
 }
 
 // Convert converts the input to the out type and assigns it.
@@ -111,6 +111,11 @@ func (c *StringConverter) Value() string {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *StringConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *StringConverter) Error() error {
 	return c.err
@@ -118,7 +123,7 @@ func (c *StringConverter) Error() error {
 
 // StringPtrConverter is a converter that converts a pointer of string type to another type.
 type StringPtrConverter struct {
-	converter
+	baseConverter
 	value *string
 	err   error
 }
@@ -130,6 +135,11 @@ func (c *StringPtrConverter) Result() (*string, error) {
 
 // Value returns the conversion result.
 func (c *StringPtrConverter) Value() *string {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *StringPtrConverter) Interface() interface{} {
 	return c.value
 }
 

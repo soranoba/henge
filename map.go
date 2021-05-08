@@ -71,9 +71,9 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 	}
 
 	if c.isNil {
-		return &MapConverter{converter: c.converter, value: nil, err: err}
+		return &MapConverter{baseConverter: c.baseConverter, value: nil, err: err}
 	}
-	return &MapConverter{converter: c.converter, value: value, err: err}
+	return &MapConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 func (c *ValueConverter) jsonMapWithDepth(depth uint) *JSONMapConverter {
@@ -135,14 +135,14 @@ func (c *ValueConverter) jsonMapWithDepth(depth uint) *JSONMapConverter {
 	}
 
 	if c.isNil {
-		return &JSONMapConverter{converter: c.converter, value: nil, err: err}
+		return &JSONMapConverter{baseConverter: c.baseConverter, value: nil, err: err}
 	}
-	return &JSONMapConverter{converter: c.converter, value: value, err: err}
+	return &JSONMapConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // MapConverter is a converter that converts a map type to another type.
 type MapConverter struct {
-	converter
+	baseConverter
 	value map[interface{}]interface{}
 	err   error
 }
@@ -239,6 +239,11 @@ func (c *MapConverter) Value() map[interface{}]interface{} {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *MapConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *MapConverter) Error() error {
 	return c.err
@@ -246,7 +251,7 @@ func (c *MapConverter) Error() error {
 
 // JSONMapConverter is a converter that converts a json map type to another type.
 type JSONMapConverter struct {
-	converter
+	baseConverter
 	value map[string]interface{}
 	err   error
 }
@@ -258,6 +263,11 @@ func (c *JSONMapConverter) Result() (map[string]interface{}, error) {
 
 // Value returns the conversion result.
 func (c *JSONMapConverter) Value() map[string]interface{} {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *JSONMapConverter) Interface() interface{} {
 	return c.value
 }
 

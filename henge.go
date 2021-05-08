@@ -13,46 +13,58 @@ import (
 	"reflect"
 )
 
-// Converter is an interface that has common functions of all Converters.
-type Converter interface {
-	InstanceGet(key string) interface{}
-	InstanceSet(key string, value interface{})
-	InstanceSetValues(m map[string]interface{})
-}
+type (
+	// InstanceStore is an interface for Converter holds some key-value pairs.
+	InstanceStore interface {
+		// Get returns the value saved using Set.
+		Get(key string) interface{}
+		// Set saves the value on the key.
+		Set(key string, value interface{})
+		// SetValues saves multiple key-value pairs.
+		SetValues(m map[string]interface{})
+	}
 
-type converter struct {
-	isNil   bool
-	field   string
-	opts    ConverterOpts
-	storage map[string]interface{}
-}
+	// Converter is an interface that has common functions of all Converters.
+	Converter interface {
+		InstanceStore
+		Interface() interface{}
+		Error() error
+	}
 
-func (c *converter) new(i interface{}, fieldName string) *ValueConverter {
+	baseConverter struct {
+		isNil   bool
+		field   string
+		opts    ConverterOpts
+		storage map[string]interface{}
+	}
+)
+
+func (c *baseConverter) new(i interface{}, fieldName string) *ValueConverter {
 	newConverter := New(i)
-	newConverter.converter.field = fieldName
-	newConverter.converter.opts = c.opts
-	newConverter.converter.storage = c.storage
+	newConverter.baseConverter.field = fieldName
+	newConverter.baseConverter.opts = c.opts
+	newConverter.baseConverter.storage = c.storage
 	return newConverter
 }
 
-// InstanceGet returns the value saved using InstanceSet.
-func (c *converter) InstanceGet(key string) interface{} {
+// Get returns the value saved using InstanceSet.
+func (c *baseConverter) Get(key string) interface{} {
 	return c.storage[key]
 }
 
-// InstanceSet saves the value by specifying the key.
-func (c *converter) InstanceSet(key string, value interface{}) {
+// Set saves the value by specifying the key.
+func (c *baseConverter) Set(key string, value interface{}) {
 	c.storage[key] = value
 }
 
-// InstanceSetValues saves multiple key-value pairs.
-func (c *converter) InstanceSetValues(m map[string]interface{}) {
+// SetValues saves multiple key-value pairs.
+func (c *baseConverter) SetValues(m map[string]interface{}) {
 	for k, v := range m {
 		c.storage[k] = v
 	}
 }
 
-func (c *converter) wrapConvertError(src interface{}, dstType reflect.Type, err error) error {
+func (c *baseConverter) wrapConvertError(src interface{}, dstType reflect.Type, err error) error {
 	if convertErr, ok := err.(*ConvertError); ok {
 		err := *convertErr
 		err.DstType = dstType
@@ -77,7 +89,7 @@ func (c *converter) wrapConvertError(src interface{}, dstType reflect.Type, err 
 
 // ValueConverter is a converter that converts an interface type to another type.
 type ValueConverter struct {
-	converter
+	baseConverter
 	value interface{}
 	err   error
 }
@@ -103,7 +115,7 @@ func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
 	}
 
 	return &ValueConverter{
-		converter: converter{
+		baseConverter: baseConverter{
 			isNil:   isNil,
 			opts:    opts,
 			storage: map[string]interface{}{},
@@ -129,7 +141,7 @@ func (c *ValueConverter) Model(t interface{}) *ValueConverter {
 		err = c.Convert(v.Interface())
 		value = v.Elem().Interface()
 	}
-	return &ValueConverter{converter: c.converter, value: value, err: err}
+	return &ValueConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // Convert converts the input to the out type and assigns it.
@@ -188,6 +200,11 @@ func (c *ValueConverter) Result() (interface{}, error) {
 
 // Value returns the conversion result.
 func (c *ValueConverter) Value() interface{} {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *ValueConverter) Interface() interface{} {
 	return c.value
 }
 

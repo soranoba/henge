@@ -54,7 +54,7 @@ func (c *ValueConverter) Int() *IntegerConverter {
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf((*int64)(nil)).Type().Elem(), err)
 	}
-	return &IntegerConverter{converter: c.converter, value: value, err: err}
+	return &IntegerConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // IntPtr converts the input to pointer of int type.
@@ -64,7 +64,7 @@ func (c *ValueConverter) IntPtr() *IntegerPtrConverter {
 
 // IntegerConverter is a converter that converts an integer type to another type.
 type IntegerConverter struct {
-	converter
+	baseConverter
 	value int64
 	err   error
 }
@@ -72,9 +72,9 @@ type IntegerConverter struct {
 // Ptr converts the input to ptr type.
 func (c *IntegerConverter) Ptr() *IntegerPtrConverter {
 	if c.err != nil || c.isNil {
-		return &IntegerPtrConverter{converter: c.converter, value: nil, err: c.err}
+		return &IntegerPtrConverter{baseConverter: c.baseConverter, value: nil, err: c.err}
 	}
-	return &IntegerPtrConverter{converter: c.converter, value: &c.value, err: nil}
+	return &IntegerPtrConverter{baseConverter: c.baseConverter, value: &c.value, err: nil}
 }
 
 // Convert converts the input to the out type and assigns it.
@@ -137,6 +137,11 @@ func (c *IntegerConverter) Value() int64 {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *IntegerConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails.
 func (c *IntegerConverter) Error() error {
 	return c.err
@@ -144,7 +149,7 @@ func (c *IntegerConverter) Error() error {
 
 // IntegerPtrConverter is a converter that converts a pointer of integer type to another type.
 type IntegerPtrConverter struct {
-	converter
+	baseConverter
 	value *int64
 	err   error
 }
@@ -156,6 +161,11 @@ func (c *IntegerPtrConverter) Result() (*int64, error) {
 
 // Value returns the conversion result.
 func (c *IntegerPtrConverter) Value() *int64 {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *IntegerPtrConverter) Interface() interface{} {
 	return c.value
 }
 

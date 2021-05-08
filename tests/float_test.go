@@ -7,6 +7,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestFloatConverter(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Float()
+}
+
 func TestFloatConverter_Ptr(t *testing.T) {
 	ptr, err := henge.New(struct{}{}).Float().Ptr().Result()
 	assert.Nil(t, ptr)

@@ -7,15 +7,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConverter_InstanceGet(t *testing.T) {
+func TestConverter_Get(t *testing.T) {
 	c := henge.New("some value")
 
-	c.InstanceSet("key", 1)
-	if v, ok := c.InstanceGet("key").(int); ok {
+	c.Set("key", 1)
+	if v, ok := c.Get("key").(int); ok {
 		assert.Equal(t, 1, v)
 	}
 
-	_, ok := c.InstanceGet("no").(bool)
+	_, ok := c.Get("no").(bool)
 	assert.False(t, ok)
 }
 
@@ -35,6 +35,7 @@ func TestValueConverter_Convert_MapToStruct(t *testing.T) {
 	assert.Equal(t, "a", out.A)
 	assert.Equal(t, "b", out.B)
 }
+
 func TestValueConverter_Model(t *testing.T) {
 	type In struct {
 		X string
