@@ -15,6 +15,10 @@ type (
 	// RoundingFunc is a function that rounds from float to nearest integer.
 	// e.g. math.Floor
 	RoundingFunc func(float64) float64
+	// KeyConversionFunc is a conversion function of keys.
+	KeyConversionFunc func(keyConverter *ValueConverter) Converter
+	// ValueConversionFunc is a conversion function of values.
+	ValueConversionFunc func(key interface{}, valueConverter *ValueConverter) Converter
 )
 
 type (
@@ -26,8 +30,10 @@ type (
 		prec int
 	}
 	mapOpts struct {
-		maxDepth   uint
-		filterFuns mapFilterFuns
+		maxDepth            uint
+		filterFuns          mapFilterFuns
+		keyConversionFunc   KeyConversionFunc
+		valueConversionFunc ValueConversionFunc
 	}
 	mapFilterFuns []func(k interface{}, v interface{}) bool
 )
@@ -53,6 +59,12 @@ func defaultConverterOpts() ConverterOpts {
 		mapOpts: mapOpts{
 			maxDepth:   ^uint(0),
 			filterFuns: make(mapFilterFuns, 0),
+			keyConversionFunc: func(keyConverter *ValueConverter) Converter {
+				return keyConverter
+			},
+			valueConversionFunc: func(key interface{}, valueConverter *ValueConverter) Converter {
+				return valueConverter
+			},
 		},
 	}
 }
@@ -72,6 +84,24 @@ func WithFloatFormat(fmt byte, prec int) func(*ConverterOpts) {
 func WithRoundingFunc(f RoundingFunc) func(*ConverterOpts) {
 	return func(opt *ConverterOpts) {
 		opt.numOpts.roundingFunc = f
+	}
+}
+
+// WithMapKeyConverter is an option when converting to map.
+//
+// It can be used when converting keys to other types.
+func WithMapKeyConverter(f KeyConversionFunc) func(*ConverterOpts) {
+	return func(opt *ConverterOpts) {
+		opt.mapOpts.keyConversionFunc = f
+	}
+}
+
+// WithMapValueConverter is an option when converting to map.
+//
+// It can be used when converting values to other types.
+func WithMapValueConverter(f ValueConversionFunc) func(*ConverterOpts) {
+	return func(opt *ConverterOpts) {
+		opt.mapOpts.valueConversionFunc = f
 	}
 }
 

@@ -53,6 +53,56 @@ func ExampleWithRoundingFunc() {
 	// WithRoundingFunc(math.Ceil): 2
 }
 
+func ExampleWithMapKeyConverter() {
+	in := map[interface{}]interface{}{
+		"1.0": map[float64]interface{}{1.5: "a"},
+		"2.0": map[uint64]interface{}{2: "b"},
+	}
+
+	fmt.Printf(
+		"Default:            %v\n",
+		New(in).Map().Value(),
+	)
+
+	fmt.Printf(
+		"Convert key to int: %v\n",
+		New(in, WithMapKeyConverter(func(keyConverter *ValueConverter) Converter {
+			return keyConverter.Float().Int()
+		})).Map().Value(),
+	)
+
+	// Output:
+	// Default:            map[1.0:map[1.5:a] 2.0:map[2:b]]
+	// Convert key to int: map[1:map[1:a] 2:map[2:b]]
+}
+
+func ExampleWithMapValueConverter() {
+	in := map[interface{}]interface{}{
+		"a": map[interface{}]interface{}{"a.1": 1.5, "a.2": 1},
+		"b": map[interface{}]interface{}{"b.1": 2.5, "b.2": 2},
+		"c": struct { X float64 }{X: 3.5},
+	}
+
+	fmt.Printf(
+		"Default:                          %v\n",
+		New(in).Map().Value(),
+	)
+
+	fmt.Printf(
+		"Convert values of b and c to int: %v\n",
+		New(in, WithMapValueConverter(func(key interface{}, keyConverter *ValueConverter) Converter {
+			if key == "a.1" || key == "a.2" {
+				return keyConverter
+			}
+			return keyConverter.Float().Int()
+		})).Map().Value(),
+	)
+
+	// Output:
+	// Default:                          map[a:map[a.1:1.5 a.2:1] b:map[b.1:2.5 b.2:2] c:map[X:3.5]]
+	// Convert values of b and c to int: map[a:map[a.1:1.5 a.2:1] b:map[b.1:2 b.2:2] c:map[X:3]]
+}
+
 func ExampleWithMapMaxDepth() {
 	type Nested struct {
 		Y string

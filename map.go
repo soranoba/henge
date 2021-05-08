@@ -29,15 +29,29 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 			if !c.opts.mapOpts.filterFuns.All(iterK.Interface(), iterV.Interface()) {
 				continue
 			}
-			if reflect.Indirect(iterV).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
-				strKey := New(iterK.Interface()).String().Value()
-				var v interface{}
-				if v, err = c.new(iterV.Interface(), c.field+"."+strKey).mapWithDepth(depth + 1).Result(); err != nil {
+			strKey := New(iterK.Interface()).String().Value()
+			kConv := c.opts.keyConversionFunc(c.new(iterK.Interface(), c.field+"[]"+strKey))
+			if err = kConv.Error(); err != nil {
+				goto End
+			}
+
+			switch reflect.Indirect(reflect.ValueOf(iterV.Interface())).Kind() {
+			case reflect.Struct, reflect.Map:
+				if depth < c.opts.mapOpts.maxDepth {
+					var v interface{}
+					if v, err = c.new(iterV.Interface(), c.field+"."+strKey).mapWithDepth(depth + 1).Result(); err != nil {
+						goto End
+					}
+					value[kConv.Interface()] = v
 					break
 				}
-				value[iterK.Interface()] = v
-			} else {
-				value[iterK.Interface()] = iterV.Interface()
+				fallthrough
+			default:
+				vConv := c.opts.valueConversionFunc(iterK.Interface(), c.new(iterV.Interface(), c.field+"."+strKey))
+				if err = vConv.Error(); err != nil {
+					goto End
+				}
+				value[kConv.Interface()] = vConv.Interface()
 			}
 		}
 	case reflect.Struct:
@@ -52,20 +66,36 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 			if !c.opts.mapOpts.filterFuns.All(key, field.Interface()) {
 				continue
 			}
-			if reflect.Indirect(field).Kind() == reflect.Struct && depth < c.opts.mapOpts.maxDepth {
-				var v interface{}
-				if v, err = c.new(field.Interface(), c.field+"."+key).mapWithDepth(depth + 1).Result(); err != nil {
+
+			kConv := c.opts.keyConversionFunc(c.new(key, c.field+"[]"+key))
+			if err = kConv.Error(); err != nil {
+				goto End
+			}
+
+			switch reflect.Indirect(field).Kind() {
+			case reflect.Struct, reflect.Map:
+				if depth < c.opts.mapOpts.maxDepth {
+					var v interface{}
+					if v, err = c.new(field.Interface(), c.field+"."+key).mapWithDepth(depth + 1).Result(); err != nil {
+						goto End
+					}
+					value[kConv.Interface()] = v
 					break
 				}
-				value[key] = v
-			} else {
-				value[key] = field.Interface()
+				fallthrough
+			default:
+				vConv := c.opts.valueConversionFunc(key, c.new(field.Interface(), c.field+"."+key))
+				if err = vConv.Error(); err != nil {
+					goto End
+				}
+				value[kConv.Interface()] = vConv.Interface()
 			}
 		}
 	default:
 		err = ErrUnsupportedType
 	}
 
+End:
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf(value).Type(), err)
 	}
