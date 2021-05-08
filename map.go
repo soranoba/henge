@@ -52,7 +52,10 @@ func (c *ValueConverter) mapWithDepth(depth uint) *MapConverter {
 
 		switch reflect.Indirect(reflect.ValueOf(vVal.Interface())).Kind() {
 		case reflect.Struct, reflect.Map:
-			if depth < c.opts.mapOpts.maxDepth {
+			if converted, ok := c.opts.mapOpts.structValueConversionFunc(vVal.Interface()); ok {
+				value.SetMapIndex(convertedKeyVal, reflect.ValueOf(converted))
+				break
+			} else if depth < c.opts.mapOpts.maxDepth {
 				conv := c.new(vVal.Interface(), c.field+"."+strKey).mapWithDepth(depth + 1)
 				if err = conv.err; err != nil {
 					return

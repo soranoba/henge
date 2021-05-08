@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"time"
 )
 
 func ExampleWithFloatFormat() {
@@ -118,6 +119,54 @@ func ExampleWithMapValueConverter() {
 	// Output:
 	// Default:               map[a:map[a.1:1.5 a.2:1] b:map[b.1:2.5 b.2:2] c:map[X:3.5]]
 	// Convert values to int: map[a:map[a.1:1 a.2:1] b:map[b.1:2 b.2:2] c:map[X:3]]
+}
+
+func ExampleWithMapStructValueConverter() {
+	in := map[interface{}]interface{}{
+		"Name":      "Alice",
+		"Age":       30,
+		"CreatedAt": time.Unix(1257894000, 0),
+	}
+
+	fmt.Printf(
+		"Default:        %v\n",
+		New(in).Map().Value(),
+	)
+	fmt.Printf(
+		"Time to string: %v\n",
+		New(in, WithMapStructValueConverter(func(value interface{}) (out interface{}, ok bool) {
+			var t time.Time
+			if err := New(value).As(&t); err != nil {
+				return nil, false
+			}
+			return t.String(), true
+		})).Map().Value(),
+	)
+
+	// Output:
+	// Default:        map[Age:30 CreatedAt:map[] Name:Alice]
+	// Time to string: map[Age:30 CreatedAt:2009-11-11 08:00:00 +0900 JST Name:Alice]
+}
+
+func ExampleWithMapTimeValueStringConverter() {
+	in := map[interface{}]interface{}{
+		"Name":      "Alice",
+		"Age":       30,
+		"CreatedAt": time.Unix(1257894000, 0).UTC(),
+	}
+
+	fmt.Printf(
+		"Default:        %v\n",
+		New(in).Map().Value(),
+	)
+	fmt.Printf(
+		"Time to string: %v\n",
+		New(in, WithMapTimeValueStringConverter(time.RFC3339)).Map().Value(),
+	)
+
+	// Output:
+	// Default:        map[Age:30 CreatedAt:map[] Name:Alice]
+	// Time to string: map[Age:30 CreatedAt:2009-11-10T23:00:00Z Name:Alice]
 }
 
 func ExampleWithMapMaxDepth() {

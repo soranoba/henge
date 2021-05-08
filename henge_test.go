@@ -3,6 +3,7 @@ package henge
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
 func Example_methodChain() {
@@ -263,4 +264,59 @@ func ExampleValueConverter_Model() {
 
 	// Output:
 	// henge.In{X:"125"} -> &henge.Out{X:125}
+}
+
+func ExampleValueConverter_As() {
+	var out time.Time
+	now := time.Unix(1257894000, 0)
+
+	// time.Time to time.Time
+	if err := New(now).As(&out); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(out.String())
+	}
+
+	out = time.Time{}
+
+	// *time.Time to time.Time
+	if err := New(&now).As(&out); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(out.String())
+	}
+
+	out = time.Time{}
+	nowP := &now
+
+	// **time.Time to time.Time
+	if err := New(&nowP).As(&out); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(out.String())
+	}
+
+	var outP *time.Time
+
+	// time.Time to *time.Time
+	if err := New(now).As(&outP); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(out.String())
+	}
+
+	// string to float
+	var f float64
+	if err := New("32").As(&f); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(f)
+	}
+
+	// Output:
+	// 2009-11-11 08:00:00 +0900 JST
+	// 2009-11-11 08:00:00 +0900 JST
+	// 2009-11-11 08:00:00 +0900 JST
+	// 2009-11-11 08:00:00 +0900 JST
+	// Failed to convert from string to float64: fields=, value="32", error=not convertible
 }

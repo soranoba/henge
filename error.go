@@ -16,6 +16,8 @@ var (
 	ErrOverflow = errors.New("overflows")
 	// ErrNegativeNumber is an error if converting a negative number to an unsigned type.
 	ErrNegativeNumber = errors.New("negative number")
+	// ErrNotConvertible is an error, when reflect.Value.Convert needs to use but reflect.Type.ConvertibleTo returns false.
+	ErrNotConvertible = errors.New("not convertible")
 )
 
 type (

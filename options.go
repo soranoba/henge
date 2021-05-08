@@ -3,6 +3,7 @@ package henge
 import (
 	"math"
 	"reflect"
+	"time"
 )
 
 type (
@@ -13,6 +14,10 @@ type (
 	RoundingFunc func(float64) float64
 	// ConversionFunc is a conversion function of values.
 	ConversionFunc func(converter *ValueConverter) Converter
+	// StructConversionFunc is a conversion function of struct values.
+	// If you want to do your own conversion, it returns the converted value and true.
+	// If you want to use default conversion, it returns nil and false.
+	StructConversionFunc func(value interface{}) (out interface{}, ok bool)
 )
 
 var (
@@ -20,6 +25,11 @@ var (
 	// It is no conversion.
 	DefaultConversionFunc ConversionFunc = func(converter *ValueConverter) Converter {
 		return converter
+	}
+	// DefaultStructConversionFunc is a StructConversionFunc used by default.
+	// It specifies always use default conversion.
+	DefaultStructConversionFunc StructConversionFunc = func(value interface{}) (interface{}, bool) {
+		return nil, false
 	}
 )
 
@@ -41,11 +51,12 @@ type (
 		valueConversionFunc ConversionFunc
 	}
 	mapOpts struct {
-		maxDepth            uint
-		filterFuns          mapFilterFuns
-		keyType             reflect.Type
-		keyConversionFunc   ConversionFunc
-		valueConversionFunc ConversionFunc
+		maxDepth                  uint
+		filterFuns                mapFilterFuns
+		keyType                   reflect.Type
+		keyConversionFunc         ConversionFunc
+		valueConversionFunc       ConversionFunc
+		structValueConversionFunc StructConversionFunc
 	}
 	mapFilterFuns []func(k interface{}, v interface{}) bool
 )
@@ -76,11 +87,12 @@ func defaultConverterOpts() *converterOpts {
 			valueConversionFunc: DefaultConversionFunc,
 		},
 		mapOpts: mapOpts{
-			maxDepth:            ^uint(0),
-			filterFuns:          make(mapFilterFuns, 0),
-			keyType:             interfaceType,
-			keyConversionFunc:   DefaultConversionFunc,
-			valueConversionFunc: DefaultConversionFunc,
+			maxDepth:                  ^uint(0),
+			filterFuns:                make(mapFilterFuns, 0),
+			keyType:                   interfaceType,
+			keyConversionFunc:         DefaultConversionFunc,
+			valueConversionFunc:       DefaultConversionFunc,
+			structValueConversionFunc: DefaultStructConversionFunc,
 		},
 	}
 }
@@ -127,6 +139,31 @@ func WithMapKeyConverter(f ConversionFunc) ConverterOption {
 func WithMapValueConverter(f ConversionFunc) ConverterOption {
 	return func(opt *converterOpts) {
 		opt.mapOpts.valueConversionFunc = f
+	}
+}
+
+// WithMapStructValueConverter is an option when converting to map.
+//
+// It can be used when converting struct values to other types.
+func WithMapStructValueConverter(f StructConversionFunc) ConverterOption {
+	return func(opt *converterOpts) {
+		opt.mapOpts.structValueConversionFunc = f
+	}
+}
+
+// WithMapTimeValueStringConverter is an option when converting to map.
+//
+// It converts time.Time in the map value to strings.
+// It cannot be specified at the same time as WithMapStructValueConverter.
+func WithMapTimeValueStringConverter(layout string) ConverterOption {
+	return func(opt *converterOpts) {
+		opt.mapOpts.structValueConversionFunc = func(value interface{}) (interface{}, bool) {
+			var t time.Time
+			if err := New(value).As(&t); err != nil {
+				return nil, false
+			}
+			return t.Format(layout), true
+		}
 	}
 }
 

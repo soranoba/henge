@@ -166,6 +166,33 @@ func (c *ValueConverter) Model(t interface{}) *ValueConverter {
 	return &ValueConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
+// As set the input value to the output using simple type cast.
+func (c *ValueConverter) As(out interface{}) error {
+	outV := reflect.ValueOf(out)
+	if outV.Type().Kind() != reflect.Ptr {
+		panic("out must be ptr")
+	}
+	outV = outV.Elem()
+
+	outType := outV.Type()
+	for outType.Kind() == reflect.Ptr {
+		outType = outType.Elem()
+	}
+	inV := c.reflectValue
+	for inV.Kind() == reflect.Ptr {
+		inV = inV.Elem()
+	}
+	if inV.Type().ConvertibleTo(outType) {
+		for outV.Kind() == reflect.Ptr {
+			outV.Set(reflect.New(outV.Type().Elem()))
+			outV = outV.Elem()
+		}
+		outV.Set(inV.Convert(outType))
+		return nil
+	}
+	return c.wrapConvertError(c.value, outType, ErrNotConvertible)
+}
+
 // Convert converts the input to the out type and assigns it.
 // If the conversion fails, the method returns an error.
 func (c *ValueConverter) Convert(out interface{}) error {
