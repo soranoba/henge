@@ -35,12 +35,12 @@ import (
 type (
 	// InstanceStore is an interface for Converter holds some key-value pairs.
 	InstanceStore interface {
-		// Get returns the value saved using Set.
-		Get(key string) interface{}
-		// Set saves the value on the key.
-		Set(key string, value interface{})
-		// SetValues saves multiple key-value pairs.
-		SetValues(m map[string]interface{})
+		// InstanceGet returns the value saved using Set.
+		InstanceGet(key string) interface{}
+		// InstanceSet saves the value on the key.
+		InstanceSet(key string, value interface{})
+		// InstanceSetValues saves multiple key-value pairs.
+		InstanceSetValues(m map[string]interface{})
 	}
 
 	// Converter is an interface that has common functions of all Converters.
@@ -67,18 +67,18 @@ func (c *baseConverter) new(i interface{}, fieldName string) *ValueConverter {
 	return newConverter
 }
 
-// Get returns the value saved using Set.
-func (c *baseConverter) Get(key string) interface{} {
+// InstanceGet returns the value saved using Set.
+func (c *baseConverter) InstanceGet(key string) interface{} {
 	return c.storage[key]
 }
 
-// Set saves the value on the key.
-func (c *baseConverter) Set(key string, value interface{}) {
+// InstanceSet saves the value on the key.
+func (c *baseConverter) InstanceSet(key string, value interface{}) {
 	c.storage[key] = value
 }
 
-// SetValues saves multiple key-value pairs.
-func (c *baseConverter) SetValues(m map[string]interface{}) {
+// InstanceSetValues saves multiple key-value pairs.
+func (c *baseConverter) InstanceSetValues(m map[string]interface{}) {
 	for k, v := range m {
 		c.storage[k] = v
 	}

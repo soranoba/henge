@@ -7,29 +7,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConverter_Get(t *testing.T) {
+func TestConverter_InstanceGet(t *testing.T) {
 	c := henge.New("some value")
 
-	c.Set("key", 1)
-	if v, ok := c.Get("key").(int); ok {
+	c.InstanceSet("key", 1)
+	if v, ok := c.InstanceGet("key").(int); ok {
 		assert.Equal(t, 1, v)
 	}
 
-	assert.Nil(t, c.Get("no"))
+	assert.Nil(t, c.InstanceGet("no"))
 }
 
-func TestConverter_SetValues(t *testing.T) {
+func TestConverter_InstanceSetValues(t *testing.T) {
 	c := henge.New("some value")
 
-	c.SetValues(map[string]interface{}{"a": 1, "b": 2})
-	if v, ok := c.Get("a").(int); ok {
+	c.InstanceSetValues(map[string]interface{}{"a": 1, "b": 2})
+	if v, ok := c.InstanceGet("a").(int); ok {
 		assert.Equal(t, 1, v)
 	}
-	if v, ok := c.Get("b").(int); ok {
+	if v, ok := c.InstanceGet("b").(int); ok {
 		assert.Equal(t, 2, v)
 	}
 
-	assert.Nil(t, c.Get("c"))
+	assert.Nil(t, c.InstanceGet("c"))
 }
 
 func TestValueConverter_interface(t *testing.T) {

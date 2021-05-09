@@ -216,7 +216,7 @@ type AfterCallbackT struct {
 
 func (t *AfterCallbackT) AfterConvert(src interface{}, store henge.InstanceStore) error {
 	if u, ok := src.(User); ok {
-		diff, _ := store.Get("diff").(int)
+		diff, _ := store.InstanceGet("diff").(int)
 		t.Age = u.Age + diff
 		return nil
 	}
@@ -255,7 +255,7 @@ func TestStructConverter_Callbacks(t *testing.T) {
 	// NOTE: AfterCallbackT converts only from User{} and returns an error otherwise.
 	out2 := AfterCallbackT{}
 	conv := henge.New(user)
-	conv.Set("diff", 23)
+	conv.InstanceSet("diff", 23)
 	assert.NoError(t, conv.Struct().Convert(&out2))
 	assert.Equal(t, user.Name, out2.Name)
 	assert.Equal(t, 48, out2.Age)
