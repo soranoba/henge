@@ -125,7 +125,7 @@ func ExampleWithMapStructValueConverter() {
 	in := map[interface{}]interface{}{
 		"Name":      "Alice",
 		"Age":       30,
-		"CreatedAt": time.Unix(1257894000, 0),
+		"CreatedAt": time.Unix(1257894000, 0).UTC(),
 	}
 
 	fmt.Printf(
@@ -145,7 +145,7 @@ func ExampleWithMapStructValueConverter() {
 
 	// Output:
 	// Default:        map[Age:30 CreatedAt:map[] Name:Alice]
-	// Time to string: map[Age:30 CreatedAt:2009-11-11 08:00:00 +0900 JST Name:Alice]
+	// Time to string: map[Age:30 CreatedAt:2009-11-10 23:00:00 +0000 UTC Name:Alice]
 }
 
 func ExampleWithMapTimeValueStringConverter() {

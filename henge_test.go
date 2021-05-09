@@ -268,7 +268,7 @@ func ExampleValueConverter_Model() {
 
 func ExampleValueConverter_As() {
 	var out time.Time
-	now := time.Unix(1257894000, 0)
+	now := time.Unix(1257894000, 0).UTC()
 
 	// time.Time to time.Time
 	if err := New(now).As(&out); err != nil {
@@ -314,9 +314,9 @@ func ExampleValueConverter_As() {
 	}
 
 	// Output:
-	// 2009-11-11 08:00:00 +0900 JST
-	// 2009-11-11 08:00:00 +0900 JST
-	// 2009-11-11 08:00:00 +0900 JST
-	// 2009-11-11 08:00:00 +0900 JST
+	// 2009-11-10 23:00:00 +0000 UTC
+	// 2009-11-10 23:00:00 +0000 UTC
+	// 2009-11-10 23:00:00 +0000 UTC
+	// 2009-11-10 23:00:00 +0000 UTC
 	// Failed to convert from string to float64: fields=, value="32", error=not convertible
 }
