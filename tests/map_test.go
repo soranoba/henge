@@ -37,8 +37,11 @@ func TestMapConverter_nil(t *testing.T) {
 
 func TestMapConverter_Convert_type(t *testing.T) {
 	src := map[string]interface{}{
-		"a": map[string]interface{}{"a.1": "a.1"},
-		"b": map[string]interface{}{"b.1": "b.1"},
+		"a": map[string]interface{}{
+			"a.1": map[string]string{
+				"a.1.1": "a.1.1",
+			},
+		},
 	}
 	var dst map[string]interface{}
 	assert.NoError(t, henge.New(src).Map().Convert(&dst))

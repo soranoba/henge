@@ -19,6 +19,34 @@ func TestStructConverter_interface(t *testing.T) {
 	var _ henge.Converter = henge.New(nil).Struct()
 }
 
+func TestStructConverter_Convert_map(t *testing.T) {
+	type T1 struct {
+		X       int
+		Payload map[string]interface{}
+	}
+	type T2 struct {
+		X       string
+		Payload map[string]interface{}
+	}
+
+	in := T1{
+		Payload: map[string]interface{}{
+			"a": map[string]interface{}{
+				"a.1": map[string]string{
+					"a.1.1": "a.1.1",
+				},
+			},
+		},
+	}
+	var out T2
+
+	assert.NoError(t, henge.New(in).Struct().Convert(&out))
+	assert.NotEqual(t, out.Payload, in.Payload)
+
+	assert.NoError(t, henge.New(in, henge.WithMapMaxDepth(0)).Map().Convert(&out))
+	assert.Equal(t, out.Payload, in.Payload)
+}
+
 func TestStructConverter_EmbeddedField(t *testing.T) {
 	type In struct {
 		A string
