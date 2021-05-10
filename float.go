@@ -5,6 +5,26 @@ import (
 	"strconv"
 )
 
+type (
+	// FloatConverter is a converter that converts a float type to another type.
+	FloatConverter struct {
+		*baseConverter
+		value float64
+		err   error
+	}
+
+	// FloatPtrConverter is a converter that converts a pointer of float type to another type.
+	FloatPtrConverter struct {
+		*baseConverter
+		value *float64
+		err   error
+	}
+)
+
+// --------------------------------------------------------------------- //
+// ValueConverter
+// --------------------------------------------------------------------- //
+
 // Float converts the input to float type.
 func (c *ValueConverter) Float() *FloatConverter {
 	var (
@@ -12,7 +32,7 @@ func (c *ValueConverter) Float() *FloatConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	if inV.IsValid() {
 		inT := inV.Type()
 		outT := reflect.TypeOf(value)
@@ -34,13 +54,7 @@ func (c *ValueConverter) Float() *FloatConverter {
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf((*float64)(nil)).Type().Elem(), err)
 	}
-	return &FloatConverter{converter: c.converter, value: value, err: err}
-}
-
-// FloatrPtr is a deprecated method.
-// Please use FloatPtr.
-func (c *ValueConverter) FloatrPtr() *FloatPtrConverter {
-	return c.Float().Ptr()
+	return &FloatConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
 // FloatPtr converts the input to pointer of float type.
@@ -48,17 +62,14 @@ func (c *ValueConverter) FloatPtr() *FloatPtrConverter {
 	return c.Float().Ptr()
 }
 
-// FloatConverter is a converter that converts a float type to another type.
-type FloatConverter struct {
-	converter
-	value float64
-	err   error
-}
+// --------------------------------------------------------------------- //
+// FloatConverter
+// --------------------------------------------------------------------- //
 
 // Int converts the input to int type.
 func (c *FloatConverter) Int() *IntegerConverter {
 	if c.err != nil {
-		return &IntegerConverter{converter: c.converter, value: 0, err: c.err}
+		return &IntegerConverter{baseConverter: c.baseConverter, value: 0, err: c.err}
 	}
 	return c.new(c.value, c.field).Int()
 }
@@ -66,7 +77,7 @@ func (c *FloatConverter) Int() *IntegerConverter {
 // Uint converts the input to uint type.
 func (c *FloatConverter) Uint() *UnsignedIntegerConverter {
 	if c.err != nil {
-		return &UnsignedIntegerConverter{converter: c.converter, value: 0, err: c.err}
+		return &UnsignedIntegerConverter{baseConverter: c.baseConverter, value: 0, err: c.err}
 	}
 	return c.new(c.value, c.field).Uint()
 }
@@ -74,9 +85,9 @@ func (c *FloatConverter) Uint() *UnsignedIntegerConverter {
 // Ptr converts the input to ptr type.
 func (c *FloatConverter) Ptr() *FloatPtrConverter {
 	if c.err != nil || c.isNil {
-		return &FloatPtrConverter{converter: c.converter, value: nil, err: c.err}
+		return &FloatPtrConverter{baseConverter: c.baseConverter, value: nil, err: c.err}
 	}
-	return &FloatPtrConverter{converter: c.converter, value: &c.value, err: c.err}
+	return &FloatPtrConverter{baseConverter: c.baseConverter, value: &c.value, err: c.err}
 }
 
 // Convert converts the input to the out type and assigns it.
@@ -123,17 +134,19 @@ func (c *FloatConverter) Value() float64 {
 	return c.value
 }
 
+// Interface returns the conversion result of interface type.
+func (c *FloatConverter) Interface() interface{} {
+	return c.value
+}
+
 // Error returns an error if the conversion fails
 func (c *FloatConverter) Error() error {
 	return c.err
 }
 
-// FloatPtrConverter is a converter that converts a pointer of float type to another type.
-type FloatPtrConverter struct {
-	converter
-	value *float64
-	err   error
-}
+// --------------------------------------------------------------------- //
+// FloatPtrConverter
+// --------------------------------------------------------------------- //
 
 // Result returns the conversion result and error.
 func (c *FloatPtrConverter) Result() (*float64, error) {
@@ -142,6 +155,11 @@ func (c *FloatPtrConverter) Result() (*float64, error) {
 
 // Value returns the conversion result.
 func (c *FloatPtrConverter) Value() *float64 {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *FloatPtrConverter) Interface() interface{} {
 	return c.value
 }
 

@@ -16,16 +16,20 @@ var (
 	ErrOverflow = errors.New("overflows")
 	// ErrNegativeNumber is an error if converting a negative number to an unsigned type.
 	ErrNegativeNumber = errors.New("negative number")
+	// ErrNotConvertible is an error, when reflect.Value.Convert needs to use but reflect.Type.ConvertibleTo returns false.
+	ErrNotConvertible = errors.New("not convertible")
 )
 
-// ConvertError is an error that shows where the error occurred during conversion.
-type ConvertError struct {
-	Field   string
-	SrcType reflect.Type
-	DstType reflect.Type
-	Value   interface{}
-	Err     error
-}
+type (
+	// ConvertError is an error that shows where the error occurred during conversion.
+	ConvertError struct {
+		Field   string
+		SrcType reflect.Type
+		DstType reflect.Type
+		Value   interface{}
+		Err     error
+	}
+)
 
 func (e *ConvertError) Unwrap() error {
 	return e.Err

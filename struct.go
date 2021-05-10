@@ -5,6 +5,19 @@ import (
 	"reflect"
 )
 
+type (
+	// StructConverter is a converter that converts a struct type to another type.
+	StructConverter struct {
+		*baseConverter
+		value interface{}
+		err   error
+	}
+)
+
+// --------------------------------------------------------------------- //
+// ValueConverter
+// --------------------------------------------------------------------- //
+
 // Struct converts the input to struct type.
 func (c *ValueConverter) Struct() *StructConverter {
 	var (
@@ -12,7 +25,7 @@ func (c *ValueConverter) Struct() *StructConverter {
 		err   error
 	)
 
-	inV := reflect.Indirect(reflect.ValueOf(c.value))
+	inV := reflect.Indirect(c.reflectValue)
 	switch inV.Kind() {
 	case reflect.Struct:
 		value = c.value
@@ -23,15 +36,12 @@ func (c *ValueConverter) Struct() *StructConverter {
 	if err != nil {
 		err = c.wrapConvertError(c.value, reflect.ValueOf((*uint64)(nil)).Type().Elem(), err)
 	}
-	return &StructConverter{converter: c.converter, value: value, err: err}
+	return &StructConverter{baseConverter: c.baseConverter, value: value, err: err}
 }
 
-// StructConverter is a converter that converts a struct type to another type.
-type StructConverter struct {
-	converter
-	value interface{}
-	err   error
-}
+// --------------------------------------------------------------------- //
+// StructConverter
+// --------------------------------------------------------------------- //
 
 // Convert converts the input to the out type and assigns it.
 // If the conversion fails, the method returns an error.
@@ -41,6 +51,16 @@ func (c *StructConverter) Convert(out interface{}) error {
 		panic("out must be ptr")
 	}
 	return c.convert(outV.Elem())
+}
+
+// Interface returns the conversion result of interface type.
+func (c *StructConverter) Interface() interface{} {
+	return c.value
+}
+
+// Error returns an error if the conversion fails.
+func (c *StructConverter) Error() error {
+	return c.err
 }
 
 func (c *StructConverter) convert(outV reflect.Value) error {
@@ -55,7 +75,7 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	elemOutV := toInitializedNonPtrValue(outV)
 
 	if beforeCallback, ok := elemOutV.Addr().Interface().(BeforeCallback); ok {
-		if err = beforeCallback.BeforeConvert(c.value, &c.converter); err != nil {
+		if err = beforeCallback.BeforeConvert(c.value, c.baseConverter); err != nil {
 			goto failed
 		}
 	}
@@ -130,11 +150,11 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 			}
 		}
 	default:
-		err = c.new(c.value, c.field).convert(outV)
+		err = c.new(c.value, c.field).Map().convert(outV)
 	}
 
 	if afterCallback, ok := elemOutV.Addr().Interface().(AfterCallback); ok {
-		err = afterCallback.AfterConvert(c.value, &c.converter)
+		err = afterCallback.AfterConvert(c.value, c.baseConverter)
 	}
 
 failed:

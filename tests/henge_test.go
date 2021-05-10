@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,8 +15,34 @@ func TestConverter_InstanceGet(t *testing.T) {
 		assert.Equal(t, 1, v)
 	}
 
-	_, ok := c.InstanceGet("no").(bool)
-	assert.False(t, ok)
+	assert.Nil(t, c.InstanceGet("no"))
+}
+
+func TestConverter_InstanceSetValues(t *testing.T) {
+	c := henge.New("some value")
+
+	c.InstanceSetValues(map[string]interface{}{"a": 1, "b": 2})
+	if v, ok := c.InstanceGet("a").(int); ok {
+		assert.Equal(t, 1, v)
+	}
+	if v, ok := c.InstanceGet("b").(int); ok {
+		assert.Equal(t, 2, v)
+	}
+
+	assert.Nil(t, c.InstanceGet("c"))
+}
+
+func TestValueConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil)
+}
+
+func TestValueConverter_Value(t *testing.T) {
+	assert.Equal(t, nil, henge.New(nil).Value())
+	assert.Equal(t, (*string)(nil), henge.New((*string)(nil)).Value())
+	assert.Equal(t, 1, henge.New(1).Value())
+
+	var i int
+	assert.Equal(t, &i, henge.New(&i).Value())
 }
 
 func TestValueConverter_Convert_Interface(t *testing.T) {
@@ -35,6 +61,7 @@ func TestValueConverter_Convert_MapToStruct(t *testing.T) {
 	assert.Equal(t, "a", out.A)
 	assert.Equal(t, "b", out.B)
 }
+
 func TestValueConverter_Model(t *testing.T) {
 	type In struct {
 		X string

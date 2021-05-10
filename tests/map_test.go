@@ -6,35 +6,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJSONMapConverter(t *testing.T) {
-	type Internal struct {
-		Y int
-		Z string
-	}
-	type In struct {
-		X string
-		I Internal
-	}
-	m, err := henge.New(In{X: "x", I: Internal{Y: 1, Z: "z"}}).JSONMap().Result()
-	assert.NoError(t, err)
-	assert.Equal(t,
-		map[string]interface{}{"X": "x", "I": map[string]interface{}{"Y": 1, "Z": "z"}},
-		m,
-	)
+func TestMapConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Map()
 }
 
-func TestMapConverter_PrivateField(t *testing.T) {
+func TestMapConverter_privateField(t *testing.T) {
 	// NOTE: private fields cannot be copied
 	m, err := henge.New(time.Now()).Map().Result()
 	assert.NoError(t, err)
 	assert.Equal(t, map[interface{}]interface{}{}, m)
 }
 
-func TestMapConverter_Nil(t *testing.T) {
+func TestMapConverter_nil(t *testing.T) {
 	m, err := henge.New((*struct{})(nil)).Map().Result()
 	assert.NoError(t, err)
 	assert.Nil(t, m)
@@ -46,6 +33,22 @@ func TestMapConverter_Nil(t *testing.T) {
 	m, err = henge.New((*int)(nil)).Map().Result()
 	assert.EqualError(t, err, "Failed to convert from *int to map[interface {}]interface {}: fields=, value=(*int)(nil), error=unsupported type")
 	assert.Nil(t, m)
+}
+
+func TestMapConverter_Convert_type(t *testing.T) {
+	src := map[string]interface{}{
+		"a": map[string]interface{}{
+			"a.1": map[string]string{
+				"a.1.1": "a.1.1",
+			},
+		},
+	}
+	var dst map[string]interface{}
+	assert.NoError(t, henge.New(src).Map().Convert(&dst))
+	assert.NotEqual(t, dst, src)
+
+	assert.NoError(t, henge.New(src, henge.WithMapMaxDepth(0)).Map().Convert(&dst))
+	assert.Equal(t, dst, src)
 }
 
 func TestMapConverter_ConvertPtr(t *testing.T) {

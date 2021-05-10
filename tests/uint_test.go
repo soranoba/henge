@@ -3,9 +3,13 @@ package tests
 import (
 	"testing"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestUnsignedIntegerConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Uint()
+}
 
 func TestUnsignedIntegerConverter_Convert(t *testing.T) {
 	var s string
@@ -38,4 +42,8 @@ func TestUnsignedIntegerConverter_Ptr(t *testing.T) {
 	ptr, err = henge.New((*struct{})(nil)).Uint().Ptr().Result()
 	assert.Nil(t, ptr)
 	assert.EqualError(t, err, "Failed to convert from *struct {} to uint64: fields=, value=(*struct {})(nil), error=unsupported type")
+}
+
+func TestUnsignedIntegerPtrConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).UintPtr()
 }

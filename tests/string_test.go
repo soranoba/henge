@@ -3,9 +3,13 @@ package tests
 import (
 	"testing"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestStringConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).String()
+}
 
 func TestStringConverter_Convert(t *testing.T) {
 	var s string
@@ -38,4 +42,8 @@ func TestStringConverter_Ptr(t *testing.T) {
 	ptr, err = henge.New((*struct{})(nil)).String().Ptr().Result()
 	assert.Nil(t, ptr)
 	assert.EqualError(t, err, "Failed to convert from *struct {} to string: fields=, value=(*struct {})(nil), error=unsupported type")
+}
+
+func TestStringPtrConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).StringPtr()
 }

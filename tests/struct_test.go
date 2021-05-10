@@ -6,13 +6,45 @@ import (
 	"testing"
 	"time"
 
-	"github.com/soranoba/henge"
+	"github.com/soranoba/henge/v2"
 	"github.com/stretchr/testify/assert"
 )
 
 type User struct {
 	Name string
 	Age  int
+}
+
+func TestStructConverter_interface(t *testing.T) {
+	var _ henge.Converter = henge.New(nil).Struct()
+}
+
+func TestStructConverter_Convert_map(t *testing.T) {
+	type T1 struct {
+		X       int
+		Payload map[string]interface{}
+	}
+	type T2 struct {
+		X       string
+		Payload map[string]interface{}
+	}
+
+	in := T1{
+		Payload: map[string]interface{}{
+			"a": map[string]interface{}{
+				"a.1": map[string]string{
+					"a.1.1": "a.1.1",
+				},
+			},
+		},
+	}
+	var out T2
+
+	assert.NoError(t, henge.New(in).Struct().Convert(&out))
+	assert.NotEqual(t, out.Payload, in.Payload)
+
+	assert.NoError(t, henge.New(in, henge.WithMapMaxDepth(0)).Map().Convert(&out))
+	assert.Equal(t, out.Payload, in.Payload)
 }
 
 func TestStructConverter_EmbeddedField(t *testing.T) {
@@ -194,11 +226,15 @@ type BeforeCallbackT struct {
 	Age  int
 }
 
-func (t *BeforeCallbackT) BeforeConvert(src interface{}, converter henge.Converter) error {
+func (t *BeforeCallbackT) BeforeConvert(src interface{}, store henge.InstanceStore) error {
 	if _, ok := src.(User); ok {
 		return nil
 	}
 	return errors.New("failed")
+}
+
+func TestBeforeCallbackT(t *testing.T) {
+	var _ henge.BeforeCallback = &BeforeCallbackT{}
 }
 
 type AfterCallbackT struct {
@@ -206,13 +242,17 @@ type AfterCallbackT struct {
 	Age  int
 }
 
-func (t *AfterCallbackT) AfterConvert(src interface{}, converter henge.Converter) error {
+func (t *AfterCallbackT) AfterConvert(src interface{}, store henge.InstanceStore) error {
 	if u, ok := src.(User); ok {
-		diff, _ := converter.InstanceGet("diff").(int)
+		diff, _ := store.InstanceGet("diff").(int)
 		t.Age = u.Age + diff
 		return nil
 	}
 	return errors.New("failed")
+}
+
+func TestAfterCallbackT(t *testing.T) {
+	var _ henge.AfterCallback = &AfterCallbackT{}
 }
 
 func TestStructConverter_Callbacks(t *testing.T) {

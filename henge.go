@@ -3,6 +3,25 @@
 // 変化 (Henge) means "Appearing with a different figure." in Japanese.
 // Henge as the name implies can easily convert to different types.
 //
+// Usage
+//
+// Package henge has three conversion methods.
+//
+// 1. Methods having prefix with To. (e.g. ToInt). These are syntactic sugar. It often used when it can be converted reliably.
+//
+//   henge.ToInt("1")
+//
+// 2. Starting from New and continue to other methods using method chain.
+//
+//   value, err := henge.New("1").Int().Result()
+//
+// 3. Using Convert method, it can convert to any type.
+//
+//   in := map[interface{}]interface{}{"a":1,"b":2}
+//
+//   var out map[string]interface{}
+//   henge.New(in).Convert(&out)
+//
 // Links
 //
 // Source code: https://github.com/soranoba/henge
@@ -13,58 +32,67 @@ import (
 	"reflect"
 )
 
-// Converter is an interface that has common functions of all Converters.
-type Converter interface {
-	InstanceGet(key string) interface{}
-	InstanceSet(key string, value interface{})
-	InstanceSetValues(m map[string]interface{})
-}
+type (
+	// InstanceStore is an interface for Converter holds some key-value pairs.
+	InstanceStore interface {
+		// InstanceGet returns the value saved using Set.
+		InstanceGet(key string) interface{}
+		// InstanceSet saves the value on the key.
+		InstanceSet(key string, value interface{})
+		// InstanceSetValues saves multiple key-value pairs.
+		InstanceSetValues(m map[string]interface{})
+	}
 
-type converter struct {
-	isNil   bool
-	field   string
-	opts    ConverterOpts
-	storage map[string]interface{}
-}
+	// Converter is an interface that has common functions of all Converters.
+	Converter interface {
+		InstanceStore
+		Interface() interface{}
+		Error() error
+	}
 
-func (c *converter) new(i interface{}, fieldName string) *ValueConverter {
+	// baseConverter is a struct inherited by each Converter and has common functions.
+	baseConverter struct {
+		isNil   bool
+		field   string
+		opts    *converterOpts
+		storage map[string]interface{}
+	}
+)
+
+func (c *baseConverter) new(i interface{}, fieldName string) *ValueConverter {
 	newConverter := New(i)
-	newConverter.converter.field = fieldName
-	newConverter.converter.opts = c.opts
-	newConverter.converter.storage = c.storage
+	newConverter.baseConverter.field = fieldName
+	newConverter.baseConverter.opts = c.opts
+	newConverter.baseConverter.storage = c.storage
 	return newConverter
 }
 
-// InstanceGet returns the value saved using InstanceSet.
-func (c *converter) InstanceGet(key string) interface{} {
+// InstanceGet returns the value saved using Set.
+func (c *baseConverter) InstanceGet(key string) interface{} {
 	return c.storage[key]
 }
 
-// InstanceSet saves the value by specifying the key.
-func (c *converter) InstanceSet(key string, value interface{}) {
+// InstanceSet saves the value on the key.
+func (c *baseConverter) InstanceSet(key string, value interface{}) {
 	c.storage[key] = value
 }
 
 // InstanceSetValues saves multiple key-value pairs.
-func (c *converter) InstanceSetValues(m map[string]interface{}) {
+func (c *baseConverter) InstanceSetValues(m map[string]interface{}) {
 	for k, v := range m {
 		c.storage[k] = v
 	}
 }
 
-func (c *converter) wrapConvertError(src interface{}, dstType reflect.Type, err error) error {
+func (c *baseConverter) wrapConvertError(srcValue interface{}, dstType reflect.Type, err error) error {
 	if convertErr, ok := err.(*ConvertError); ok {
 		err := *convertErr
 		err.DstType = dstType
 		return &err
 	}
-	srcValue := src
 	var srcType reflect.Type
 	if reflect.ValueOf(srcValue).IsValid() {
 		srcType = reflect.ValueOf(srcValue).Type()
-		if c.isNil {
-			srcValue = reflect.New(srcType).Elem().Interface()
-		}
 	}
 	return &ConvertError{
 		Field:   c.field,
@@ -77,39 +105,45 @@ func (c *converter) wrapConvertError(src interface{}, dstType reflect.Type, err 
 
 // ValueConverter is a converter that converts an interface type to another type.
 type ValueConverter struct {
-	converter
-	value interface{}
-	err   error
+	*baseConverter
+	reflectValue reflect.Value
+	value        interface{}
+	err          error
 }
 
 // New returns a new ValueConverter
-func New(i interface{}, fs ...func(*ConverterOpts)) *ValueConverter {
+func New(i interface{}, fs ...ConverterOption) *ValueConverter {
 	opts := defaultConverterOpts()
 	for _, f := range fs {
-		f(&opts)
+		f(opts)
 	}
 
-	inV := reflect.ValueOf(i)
+	reflectValue := reflect.ValueOf(i)
 	isNil := false
-	switch inV.Kind() {
+	switch reflectValue.Kind() {
 	case reflect.Ptr:
-		if isNil = inV.IsNil(); isNil {
-			i = reflect.New(inV.Type().Elem()).Interface()
+		if isNil = reflectValue.IsNil(); isNil {
+			reflectValue = reflect.New(reflectValue.Type().Elem())
 		}
 	case reflect.Slice, reflect.Map:
-		if isNil = inV.IsNil(); isNil {
-			i = reflect.New(inV.Type()).Interface()
+		if isNil = reflectValue.IsNil(); isNil {
+			reflectValue = reflect.New(reflectValue.Type())
 		}
+	case reflect.Interface:
+		isNil = reflectValue.IsNil()
+	case reflect.Invalid:
+		isNil = true
 	}
 
 	return &ValueConverter{
-		converter: converter{
+		baseConverter: &baseConverter{
 			isNil:   isNil,
 			opts:    opts,
 			storage: map[string]interface{}{},
 		},
-		value: i,
-		err:   nil,
+		reflectValue: reflectValue,
+		value:        i,
+		err:          nil,
 	}
 }
 
@@ -129,7 +163,34 @@ func (c *ValueConverter) Model(t interface{}) *ValueConverter {
 		err = c.Convert(v.Interface())
 		value = v.Elem().Interface()
 	}
-	return &ValueConverter{converter: c.converter, value: value, err: err}
+	return &ValueConverter{baseConverter: c.baseConverter, value: value, err: err}
+}
+
+// As set the input value to the output using simple type cast.
+func (c *ValueConverter) As(out interface{}) error {
+	outV := reflect.ValueOf(out)
+	if outV.Type().Kind() != reflect.Ptr {
+		panic("out must be ptr")
+	}
+	outV = outV.Elem()
+
+	outType := outV.Type()
+	for outType.Kind() == reflect.Ptr {
+		outType = outType.Elem()
+	}
+	inV := c.reflectValue
+	for inV.Kind() == reflect.Ptr {
+		inV = inV.Elem()
+	}
+	if inV.Type().ConvertibleTo(outType) {
+		for outV.Kind() == reflect.Ptr {
+			outV.Set(reflect.New(outV.Type().Elem()))
+			outV = outV.Elem()
+		}
+		outV.Set(inV.Convert(outType))
+		return nil
+	}
+	return c.wrapConvertError(c.value, outType, ErrNotConvertible)
 }
 
 // Convert converts the input to the out type and assigns it.
@@ -188,6 +249,11 @@ func (c *ValueConverter) Result() (interface{}, error) {
 
 // Value returns the conversion result.
 func (c *ValueConverter) Value() interface{} {
+	return c.value
+}
+
+// Interface returns the conversion result of interface type.
+func (c *ValueConverter) Interface() interface{} {
 	return c.value
 }
 
