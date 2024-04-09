@@ -20,7 +20,12 @@ func ExampleValueConverter_Uint() {
 	fmt.Printf("%v -> %v\n", 1.25, New(1.25).Uint().Value())
 	fmt.Printf("%#v\n", New(-1.25).Uint().Error().Error())
 	fmt.Printf("%v -> %v\n", math.MaxUint32, New(float64(math.MaxUint32)).Uint().Value())
-	fmt.Printf("%#v\n", New(float64(math.MaxUint64)).Uint().Error().Error())
+	// This behavior varies depending on the architecture.
+	if val, err := New(float64(math.MaxUint64)).Uint().Result(); err == nil {
+		if val != math.MaxUint64 {
+			fmt.Printf("%v -> %v\n", uint64(math.MaxUint64), val)
+		}
+	}
 	fmt.Printf("%#v\n", New(math.MaxFloat64).Uint().Error().Error())
 	fmt.Println()
 
@@ -46,7 +51,6 @@ func ExampleValueConverter_Uint() {
 	// 1.25 -> 1
 	// "Failed to convert from float64 to uint64: fields=, value=-1.25, error=negative number"
 	// 4294967295 -> 4294967295
-	// "Failed to convert from float64 to uint64: fields=, value=1.8446744073709552e+19, error=overflows"
 	// "Failed to convert from float64 to uint64: fields=, value=1.7976931348623157e+308, error=overflows"
 	//
 	// bool to uint64
