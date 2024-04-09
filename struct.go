@@ -79,6 +79,16 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 			goto failed
 		}
 	}
+	if beforeCallback, ok := elemOutV.Addr().Interface().(BeforeConvertFromCallback); ok {
+		if err = beforeCallback.BeforeConvertFrom(c.value, c.baseConverter); err != nil {
+			goto failed
+		}
+	}
+	if beforeCallback, ok := reflect.ValueOf(c.value).Interface().(BeforeConvertToCallback); ok {
+		if err = beforeCallback.BeforeConvertTo(elemOutV.Addr().Interface(), c.baseConverter); err != nil {
+			goto failed
+		}
+	}
 
 	switch elemOutV.Kind() {
 	case reflect.Struct:
@@ -154,7 +164,19 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	}
 
 	if afterCallback, ok := elemOutV.Addr().Interface().(AfterCallback); ok {
-		err = afterCallback.AfterConvert(c.value, c.baseConverter)
+		if err = afterCallback.AfterConvert(c.value, c.baseConverter); err != nil {
+			goto failed
+		}
+	}
+	if afterCallback, ok := elemOutV.Addr().Interface().(AfterConvertFromCallback); ok {
+		if err = afterCallback.AfterConvertFrom(c.value, c.baseConverter); err != nil {
+			goto failed
+		}
+	}
+	if afterCallback, ok := reflect.ValueOf(c.value).Interface().(AfterConvertToCallback); ok {
+		if err = afterCallback.AfterConvertTo(elemOutV.Addr().Interface(), c.baseConverter); err != nil {
+			goto failed
+		}
 	}
 
 failed:
