@@ -2,7 +2,6 @@ package henge
 
 import (
 	"errors"
-	"log"
 	"reflect"
 )
 
@@ -75,29 +74,20 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	var err error
 	elemOutV := toInitializedNonPtrValue(outV)
 
-	beforeCallbackCount := 0
-	afterCallbackCount := 0
-
 	if beforeCallback, ok := elemOutV.Addr().Interface().(BeforeCallback); ok {
-		beforeCallbackCount += 1
 		if err = beforeCallback.BeforeConvert(c.value, c.baseConverter); err != nil {
 			goto failed
 		}
 	}
 	if beforeCallback, ok := elemOutV.Addr().Interface().(BeforeConvertFromCallback); ok {
-		beforeCallbackCount += 1
 		if err = beforeCallback.BeforeConvertFrom(c.value, c.baseConverter); err != nil {
 			goto failed
 		}
 	}
 	if beforeCallback, ok := reflect.ValueOf(c.value).Interface().(BeforeConvertToCallback); ok {
-		beforeCallbackCount += 1
 		if err = beforeCallback.BeforeConvertTo(elemOutV.Addr().Interface(), c.baseConverter); err != nil {
 			goto failed
 		}
-	}
-	if beforeCallbackCount > 1 {
-		log.Fatalf("Only one of the following can be defined between the structs: BeforeCallback, BeforeConvertFromCallback, or BeforeConvertToCallback. (%T, %T)", reflect.ValueOf(c.value).Interface(), elemOutV.Addr().Interface())
 	}
 
 	switch elemOutV.Kind() {
@@ -174,25 +164,19 @@ func (c *StructConverter) convert(outV reflect.Value) error {
 	}
 
 	if afterCallback, ok := elemOutV.Addr().Interface().(AfterCallback); ok {
-		afterCallbackCount += 1
 		if err = afterCallback.AfterConvert(c.value, c.baseConverter); err != nil {
 			goto failed
 		}
 	}
 	if afterCallback, ok := elemOutV.Addr().Interface().(AfterConvertFromCallback); ok {
-		afterCallbackCount += 1
 		if err = afterCallback.AfterConvertFrom(c.value, c.baseConverter); err != nil {
 			goto failed
 		}
 	}
 	if afterCallback, ok := reflect.ValueOf(c.value).Interface().(AfterConvertToCallback); ok {
-		afterCallbackCount += 1
 		if err = afterCallback.AfterConvertTo(elemOutV.Addr().Interface(), c.baseConverter); err != nil {
 			goto failed
 		}
-	}
-	if afterCallbackCount > 1 {
-		log.Fatalf("Only one of the following can be defined between the structs: AfterCallback, AfterConvertFromCallback, or AfterConvertToCallback. (%T, %T)", reflect.ValueOf(c.value).Interface(), elemOutV.Addr().Interface())
 	}
 
 failed:
